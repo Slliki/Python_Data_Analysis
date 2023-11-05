@@ -34,9 +34,10 @@
 暂存区：stage，本地电脑中的 .git 文件夹\
 本地仓库:local repository，本地电脑中的 .git 文件夹\
 远程仓库：remote repository，远程服务器中的 .git 文件夹
+![img.png](img.png)
 
 ## 2. <font color='red'>Git **常用命令**</font>
-- workspace --> stage: `git add xxx` 表示添加指定文件到暂存区《 `git add .`表示将所有文件添加到暂存区
+- workspace --> stage: `git add xxx` 表示添加指定文件到暂存区 `git add .`表示将所有文件添加到暂存区
 - stage --> local repository: `git commit -m "xxx"`
 - local repository --> remote repository: `git push`
 - remote repository --> local repository: `git fetch/pull`
@@ -64,8 +65,9 @@
 - Staged：已暂存，即文件在暂存区，但未被修改，如果git commit提交到版本库，则成为unmodified文件\
 可通过`git status`查看文件状态
 ## 4. Git 分支常用命令
-- git branch xxx ：创建一个名为 xxx 的分支
-- git branch -d xxx ：删除一个名为 xxx 的分支
+- git branch 'xxx' ：创建一个名为 xxx 的分支，但不会切换到该分支
+- git checkout -b 'xxx' ：创建一个名为 xxx 的分支，并切换到该分支
+- git checkout 'xxx' ：切换到 xxx 分支
+- git branch -d 'xxx' ：删除一个名为 xxx 的分支
 - git branch -r ：查看远程分支
-- git checkout xxx ：切换到 xxx 分支
-- git merge xxx ：将 xxx 分支合并到当前分支
+- git merge 'xxx' ：将 xxx 分支合并到当前分支
