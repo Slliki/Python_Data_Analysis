@@ -134,6 +134,10 @@ from table
 ```
 `case when`语句的主要作用是根据条件返回不同的结果，可以用于数据转换和数据清洗。
 
+if else的语法规则：
+- `if(condition, result1, result2)`：如果条件为真，则返回result1，否则返回result2。
+
+
 ## 5.空值处理
 ### 1. 判断空值
 - `is null`：判断是否为空值
@@ -208,6 +212,21 @@ group by col1
 ```
 `group_concat()`函数的主要作用是将分组后的多行数据合并为一行，按照指定separator分隔符进行分隔。
 
+## 10. concat()函数
+1. `concat()`函数可以将多个字符串拼接为一个字符串\
+`concat()`函数的基本语法如下：
+`select concat(str1, str2, ...)`
+## 11. 字符串处理
+- `left(str, length)`：返回字符串左边指定长度的子串。
+- `right(str, length)`：返回字符串右边指定长度的子串。
+- `substring(str, start, length)`：返回字符串指定位置和长度的子串。
+- `lower(str)`：将字符串转换为小写。
+- `upper(str)`：将字符串转换为大写。
+- `trim(str)`：去除字符串左右两边的空格。
+- `char_length(str)`：返回字符串的长度。
+
+eg: ```SELECT user_id, CONCAT(UPPER(SUBSTRING(name, 1, 1)), LOWER(SUBSTRING(name, 2))) AS name```
+该查询会返回表中name列的首字母大写，其余字母小写的字符串。
 
 # SQL 刷题总结
 # 1.topN问题
