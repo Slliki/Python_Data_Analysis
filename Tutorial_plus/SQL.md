@@ -295,6 +295,36 @@ row_number()会为结果集的行分配唯一行号，必然连续。此时当id
 # 5.条件求和问题
 
 # 6.行转列问题
+![](.SQL_images/0ef4653b.png)\
+1. 列转行就是指把某一字段的值作为新的字段输出。\
+一般使用`union`连接多个查询的方法实现\
+```sql
+SELECT product_id, 'store1' AS store, store1 AS price FROM products WHERE store1 IS NOT NULL
+UNION
+SELECT product_id, 'store2' AS store, store2 AS price FROM products WHERE store2 IS NOT NULL
+UNION
+SELECT product_id, 'store3' AS store, store3 AS price FROM products WHERE store3 IS NOT NULL;
+```
+该查询使用三个查询进行union连接，每个分别将store1,store2,store3作为store列的值，将对应的价格作为price列的值，最后得到一个新表。
+输出结果：\
+![](.SQL_images/a3e0d4ca.png)\
+即原本的行值store1/store2/store3被输出为列值store，每行price也被添加到新一列price中。
+
+2。 行转列就是指把符合某一个条件的值另起一个字段来输出。
+一般使用 `IF` 或 `CASE WHEN` 语句 + `GROUP BY` + 聚合函数
+```sql
+SELECT 
+  product_id,
+  SUM(IF(store = 'store1', price, NULL)) 'store1',
+  SUM(IF(store = 'store2', price, NULL)) 'store2',
+  SUM(IF(store = 'store3', price, NULL)) 'store3' 
+FROM
+  t1
+GROUP BY product_id 
+```
+将之前列转行得到的表作为t1，再进行行转列操作，可得到原表。\
+
+
 
 # 7.笛卡儿积问题
 ## 1.笛卡尔积

@@ -45,7 +45,7 @@ Linux不像windox有多个盘，只有一个根目录（顶级目录），Linux�
 ```
 eg: `/home/username/xxx`表示username用户的xxx目录
 
-### 2. 基本命令
+### 2. 基本命令<big>
 1. 基本格式：`command [-options] [parameter]`\
 command：命令名, [-options]：选项, [parameter]：参数\
 eg: `ls -a /home/username`表示显示username用户主目录下的所有文件，包括隐藏文件。
@@ -145,13 +145,14 @@ mkdir -p：如果上级目录不存在，则会自动创建上级目录\
 - `:wq`: 保存并退出
 - `:q!`: 强制退出
 - `:set nu`: 显示行号
-- `:set nonu`: 不显示行号
+- `:set nonu`: 不显示行号</big>
 
 ![](.Linux_images/965056f395819c4b5f26b5642ed64ad.png)
 
 ## 3. Linux用户管理
-### 1. 用户管理
+### 1. 用户管理<big>
 1. Linux是一种多用户的操作系统，可以同时有多个用户登录系统，每个用户都有自己的Home目录，可以在自己的Home目录下进行操作，不能访问其他用户的Home目录。
+
 2. Linux系统中有一个root用户，拥有最高权限，可以访问所有用户的Home目录，可以对系统进行管理。
    (1) root用户的Home目录为`/root`，其他用户的Home目录为`/home/username`，其中username为用户名。
    (2) root用户的用户名为root，其他用户的用户名可以通过`whoami`命令查看。
@@ -178,6 +179,7 @@ sudo命令需要root用户授权(先切换到root用户)，才能使用，执行
 - `id`命令：查看用户信息，如`id user1`表示查看名为user1的用户的信息
 - `passwd`命令：修改用户密码，如`passwd user1`表示修改名为user1的用户的密码
 - `usermod`命令：修改用户信息，
+  - `usermod -aG root user1`表示将user1用户添加到sudo (root)用户组中
   - `usermod -g group1 user1`表示将user1用户添加到group1用户组中
   - `usermod -d /home/user1 user1`表示将user1用户的Home目录设置为/home/user1
 - `getent` 命令：查看用户组信息，
@@ -188,7 +190,7 @@ sudo命令需要root用户授权(先切换到root用户)，才能使用，执行
 1. Linux系统中，每个文件或目录都有权限.
 2. 权限分为三种：读、写、执行，分别用r、w、x表示，每种权限用数字表示，r=4，w=2，x=1，没有权限用0表示，三种权限相加，得到数字，即为权限数字。
 
-eg: `drwxr-xr-x`表示权限数字为755，其中第一个字符d表示是目录，后面三个字符rwx表示拥有者的权限，中间三个字符r-x表示所属组的权限，最后三个字符r-x表示其他用户的权限。
+eg: `drwxr-xr-x`表示权限数字为755，其中第一个字符d表示是目录，后面三个字符rwx表示拥有者的权限，中间三个字符r-x表示所属组的权限，最后三个字符r-x表示其他用户的权限。\
 ![](.Linux_images/77dc7286463f8e9070effdb96843c1e.png)
 ![](.Linux_images/b0bae1baeccf1e7d43ebed548826093.png)
 ![](.Linux_images/bc9087854efff86f5ca03a945afc736.png)
@@ -201,3 +203,128 @@ eg: `drwxr-xr-x`表示权限数字为755，其中第一个字符d表示是目录
 - `chown`命令：修改所属用户,需要root用户权限
     - `chown user1 test.txt`表示将test.txt文件的所属用户修改为user1
     - `chown user1:group1 test.txt`表示将test.txt文件的所属用户和所属组修改为group1
+</big>
+
+## 4. 实用技巧<big>
+* `ctrl + c`: 强制终止当前程序
+* `ctrl + d`: 退出当前登录的账户，或推出某些特定程序页面
+* `ctrl + l`: 清屏 或者 `clear` 命令
+* `ctrl + a`: 光标移动到行首
+* `ctrl + e`: 光标移动到行尾
+* `ctrl + 键盘左键`: 向左跳一个单词，`ctrl + 键盘右键`：向右跳一个单词
+* `ctrl + u`: 删除光标前的内容
+* `ctrl + k`: 删除光标后的内容
+* `ctrl + w`: 删除光标前的一个单词
+* `ctrl + y`: 粘贴
+* `ctrl + r`: 搜索历史命令
+* `historu`: 查看历史执行过的命令
+* `!n`: 执行历史中的第n条命令
+* `!!`: 执行上一条命令
+* `!xxx`: 执行最近一条以xxx开头的命令</big>
+
+## 5. Linux 软件管理
+### 1. 软件安装<big>
+1. CentOs软件安装\
+`yum [-y] [install] [remove] [serach] app_name` \
+`yum`命令：用于安装软件，可以通过`yum install xxx`命令安装xxx软件。\
+`yum`命令的参数：
+- `-y`：安装软件时，不需要确认，直接安装
+- `install`：安装软件
+- `remove`：删除软件
+- `search`：搜索软件
+
+2. Ubuntu软件安装
+`apt-get [-y] [install] [remove] [serach] app_name` \
+可以通过`apt-get install xxx`命令安装xxx软件。</big>\
+
+### 2. 软件控制
+1. <big>`systemctl [start] [stop] [status] [enable] [disable] service_name` </big>\
+参数说明：
+- `start`：启动服务
+- `stop`：停止服务
+- `status`：查看服务状态
+- `enable`：设置开机启动
+- `disable`：取消开机启动</big>
+
+systemctl用于控制部分第三方软件和系统内置服务。部分第三方软件安装后没有自动集成到systemctl中，可以手动添加：
+
+2. <big>软链接\
+ln命令用于创建链接文件，链接文件分为硬链接和软链接，软链接又称为符号链接，软链接类似于windows中的快捷方式，软链接指向的是源文件的路径，而不是源文件本身。\
+语法：`ln -s [源文件] [目标文件]`\
+参数说明：
+- `-s`：创建软链接
+- `源文件`：源文件的路径
+- `目标文件`：软链接目的地的路径
+建立软链接后，可以通过`ls -l`命令查看软链接，软链接的第一个字符为`l`，表示是软链接，后面的数字表示源文件的权限，然后是源文件的所属用户和所属组，最后是源文件的名称。\
+</big>
+
+### 3. 日期和时间<big>
+1. `date`命令：查看日期和时间
+格式：`date [-d] [+format]`\
+参数说明：
+- `-d`：指定日期和时间
+- `+format`：指定日期和时间的格式
+  - `%Y`：年, `%m`：月, `%d`：日, `%H`：时, `%M`：分, `%S`：秒
+eg: `date +%Y-%m-%d`表示以`年-月-日`的格式显示日期和时间
+2. date命令进行日期和时间的计算,使用-d参数
+- `date -d "+1 day"`：表示在当前日期和时间的基础上加1天
+- `date -d "-2 year"`：表示在当前日期和时间的基础上减2年
+3. 修改时区
+首先需要修改为root用户，然后执行`timedatectl set-timezone Asia/Shanghai`命令，即可将时区修改为上海时区。\
+可以使用ntp程序自动同步时间，执行`yum install ntp`命令安装ntp程序\
+设置ntp开机自动启动：`systemctl enable ntpd`\
+设置ntp联网校准时间：`ntpdate -u ntp.aliyun.com` 使用阿里云服务器校准</big>\
+
+### 4. IP地址与域名<big>
+#### 1. IP地址
+ip地址指的是网络地址，每台计算机都有一个ip地址，用于在网络中唯一标识一台计算机。\
+格式为：`xxx.xxx.xxx.xxx`，其中xxx为0-255的数字，每个xxx之间用`.`分隔。\
+可以使用`127.0.0.1` 或 `localhost`表示本机地址。用于查看本机情况\
+1. `ifconfig`命令：查看ip地址，位于主网卡ens33下
+2. `hostname`命令：查看主机名
+   - `hostnamectl set-hostname xxx`：修改主机名为xxx,需要root用户权限
+#### 2. 域名
+1. 域名指的是网站的名称，域名是由多个单词组成，每个单词之间用`.`分隔，域名的最后一个单词为顶级域名，如`.com`、`.cn`、`.org`等，域名的倒数第二个单词为二级域名，如`baidu.com`、`google.com`、`taobao.com`等，域名的倒数第三个单词为三级域名，如`www.baidu.com`、`www.google.com`、`www.taobao.com`等。
+2. 域名解析：域名解析指的是将域名解析为ip地址，域名解析需要通过DNS服务器进行解析，DNS服务器是一种域名解析服务器，可以将域名解析为ip地址。
+3. 域名解析的过程：\
+(1) 在浏览器中输入域名，浏览器会向DNS服务器发送域名解析请求。\
+(2) DNS服务器会将域名解析为ip地址，然后将ip地址返回给浏览器。\
+(3) 浏览器通过ip地址访问网站。
+
+首先会访问本机地址本，即hosts文件，如果hosts文件中没有对应的域名和ip地址，会向DNS服务器发送域名解析请求。\
+再联网去DNS服务器查询，如果DNS服务器中没有对应的域名和ip地址，会向DNS服务器发送域名解析请求，直到找到对应的域名和ip地址，然后将ip地址返回给浏览器。\
+
+本机地址本：
+  - windows系统：`C:\Windows\System32\drivers\etc\hosts`
+  - linux系统：`/etc/hosts`
+3. 设置主机名和IP地址的本地映射
+管理员身份用记事本打开windows系统的hosts文件，添加`IP hostname`，其中IP为ip地址，hostname为主机名，然后保存即可。\
+添加映射后使用FinalShell连接时可以不用ip地址而是用主机名进行连接
+
+#### 3. 配置固定IP地址
+当前虚拟机的Linux系统，ip地址时通过DHCP自动获取的，如果虚拟机重启，ip地址会发生变化，可以通过配置固定ip地址，使得虚拟机重启后ip地址不会发生变化。
+注意：现在版本的vmware中，虚拟机重启后ip地址不会发生变化，不需要配置固定ip地址。</big>
+
+### 5. 网络传输<big>
+1.`ping`命令：测试指定网络服务器是否为可联通状态
+- `ping [-c num] ip`：测试指定ip地址是否为可联通状态, -c num表示检查次数，若不选则默认一直检查
+- `ping [-c num] hostname`：测试指定主机名是否为可联通状态
+
+2.`wget`命令：非交互式网络下载工具，可以在命令行中从指定的url下载文件
+   - `wget [-b] url`：下载指定url的文件, -b表示后台下载
+
+无论下载是否完成，都会在当前目录下创建一个文件，文件名为下载的文件名，如果下载未完成，文件大小为0，下载完成后，文件大小为下载文件的大小。\
+
+3.`curl`命令：发送http请求，可用于下载文件，获取信息等。
+   - `curl [-O] url`：下载指定url的文件, -O用于下载文件。
+
+4.端口\
+(1) ip地址只能锁定计算机，而无法锁定具体程序，所以程序直接的网络通信需要通过端口来实现。
+
+(2) Linux系统可以支持65535个端口，其中0-1023为系统端口，1024-49151为注册端口，通常用于程序，49152-65535为动态端口，通常用于当程序
+对外进行网络连接时临时使用。
+
+(3) 通过nmap命令查看端口占用情况： `nmap ip`
+
+(4) 通过netstat命令查看端口占用情况： `netstat -an | grep 端口号`\
+</big>
