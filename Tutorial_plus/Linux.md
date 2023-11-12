@@ -342,7 +342,7 @@ ip地址指的是网络地址，每台计算机都有一个ip地址，用于在�
   - `kill -9 PID`：强制杀死指定PID的进程
   - `killall xxx`：杀死所有名为xxx的进程
 
-### 7. 主机状态
+### 7. 主机状态<big>
 1. `top`命令：查看主机状态，默认5秒刷新一次
   - `top`：查看主机状态
   - `top -d 2`：每隔2秒刷新一次主机状态
@@ -369,7 +369,7 @@ ps:top命令以交互式运行（非-b启动），可用以下命令进行交互
   - `iostat -x [num1] [num2]` 显示完整信息,num1表示刷新间隔，num2表示查看次数
 - `sar`命令：查看网络相关统计
     - `sar -n DEV [num1] [num2]` -n查看网络，DEV表示查看网络接口,num1表示刷新间隔，num2表示查看次数</big>
-
+</big>
 ### 8. 环境变量
 1. 环境变量：环境变量是一些动态的值，可以影响shell命令的运行，环境变量可以通过`env`命令查看。
 2. PATH环境变量：PATH环境变量是一种特殊的环境变量，用于指定shell命令的搜索路径，当执行shell命令时，会在PATH环境变量指定的路径中查找命令，如果找到命令，则执行命令，如果找不到命令，则提示命令不存在。
@@ -380,3 +380,48 @@ ps:top命令以交互式运行（非-b启动），可用以下命令进行交互
   - `source ~/.bashrc`：使配置生效
 - `vim /etc/profile`：打开profile文件，在该文件内使用export语句添加环境变量，并保存
   - `source /etc/profile`：使配置生效
+
+### 9. 文件上传下载<big>
+1. 通过FinalShell上传下载文件\
+上传：将本地电脑文件拖拽到FinalShell中，即可上传文件\
+下载：将FinalShell中的文件右键下载，下载地址为download文件夹
+
+注意：即使在FinalShell里使用su -root命令切换为root权限，但是FinalShell的登录用户
+仍然是普通用户；需要将连接用户设置为root用户才可以得到最大权限。
+
+2. 在FinalShell的文件列表找到需要上传的地址，将本地电脑文件拖拽进去即可上传
+3. rz，sz命令
+通过`yum install lrzsz`命令安装rz，sz命令
+- `rz`：将本地文件上传到服务器
+- `sz file_name`：将服务器文件下载到本地
+
+**注意**使用rz命令上传速度很慢，如果是大文件一般使用拖拽方式直接上传更快</big>
+
+### 10. 压缩和解压<big>
+Linux系统常用压缩格式：tar、gzip，zip；
+
+(1) .tar文件：tar文件是一种归档文件，可以将多个文件或目录打包成一个文件，但是没有压缩功能，只是将多个文件或目录打包成一个文件，文件后缀为.tar\
+(2) .gz文件：gz文件是一种压缩文件，可以将一个文件压缩成一个文件，文件后缀为.gz\
+(3) .tar.gz文件：tar.gz文件是一种压缩文件，可以将多个文件或目录打包成一个文件，并且压缩，文件后缀为.tar.gz\
+(4) .zip文件：zip文件是一种压缩文件，可以将多个文件或目录打包成一个文件，并且压缩，文件后缀为.zip
+
+1. `tar [-c -v -x -f -z -C]`命令：用于压缩和解压文件 
+ `-c` 创建压缩文件\
+ `-v` 显示压缩过程\
+ `-x` 解压文件\
+ `-f` 指定压缩文件名，使用时必须在最后一位\
+ `-z` 压缩文件为tar.gz格式,不指定该参数则为普通tarball归档文件\
+ `-C` 指定解压目录,需要和其他参数分开写如：`tar -zxvf file.tar.gz -C /home/username`\
+
+常用组合：
+- `tar -cvf file.tar file1 file2`：将file1和file2打包成file.tar文件
+- `tar -zcvf file.tar.gz file1 file2`：将file1和file2打包成file.tar.gz文件
+- `tar -xvf file.tar`：解压file.tar文件
+
+2. `zip [-r] file.zip file1 file2`命令：用于压缩和解压文件
+- `-r` 递归压缩目录下的所有文件,即被压缩的文件中如果包含文件夹,则将目录下的所有文件都压缩到压缩文件中
+3. `unzip  file.zip [-d] path`命令：用于解压zip文件
+- `-d` 指定解压目录,需要和其他参数分开写如：`unzip file.zip -d /home/username`</big>
+
+
+## 6. Linux 部署
