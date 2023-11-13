@@ -213,11 +213,8 @@ group by col1
 ```
 `group_concat()`函数的主要作用是将分组后的多行数据合并为一行，按照指定separator分隔符进行分隔。
 
-## 10. concat()函数
-1. `concat()`函数可以将多个字符串拼接为一个字符串\
-`concat()`函数的基本语法如下：
-`select concat(str1, str2, ...)`
-## 11. 字符串处理
+
+## 10. 字符串处理
 - `left(str, length)`：返回字符串左边指定长度的子串。
 - `right(str, length)`：返回字符串右边指定长度的子串。
 - `substring(str, start, length)`：返回字符串指定位置和长度的子串。
@@ -225,10 +222,96 @@ group by col1
 - `upper(str)`：将字符串转换为大写。
 - `trim(str)`：去除字符串左右两边的空格。
 - `char_length(str)`：返回字符串的长度。
+- `concat()`函数可以将多个字符串拼接为一个字符串\
+`select concat(str1, str2, )` 若需要在字符串中添加空格，可以使用`concat(str1, ' ', str2, )`
 
 eg: ```SELECT user_id, CONCAT(UPPER(SUBSTRING(name, 1, 1)), LOWER(SUBSTRING(name, 2))) AS name```
 该查询会返回表中name列的首字母大写，其余字母小写的字符串。
 
+### 11. 增删改
+1. 表的创建
+```
+create table table_name if not exist(
+    col1 type1 not null,
+    col2 type2 primary key,
+    ...
+)
+```
+通过primary key指定主键，通过not null指定非空约束。
+
+
+复制表格\
+`create 目标表 like 来源表`
+
+将table1的部分拿来创建table2\
+```
+create table if not exists actor_name
+(first_name varchar(45) not null,
+last_name varchar(45) not null)
+select first_name,last_name
+from actor
+```
+2. 表的插入
+```
+insert into table_name(col1, col2, ...)
+values(v11, v12, ...),
+      (v21, v22, ...),
+      ...
+```
+其中v11, v12, ...表示第一行的值，v21, v22, ...表示第二行的值，以此类推。
+
+```pycon
+insert ignore into table_name(col1, col2, ...)
+```
+ignore表示如果插入的数据与表中的数据重复，则忽略该条数据。
+3. 表的修改\
+通过replace将指定列数据修改
+```
+replace into table_name(col1, col2, ...)
+values(v11, v12, ...),
+      (v21, v22, ...),
+      ...
+```
+update可以修改指定位置的数据，通过where进行定位\
+
+````
+update table_name
+set col1 = v11,
+    col2 = v12,
+    ...
+where condition
+````
+
+```
+update table_name
+set col1=if(condition1, new_value, col1)
+    col2=if(condition2, new_value, col2)
+```
+alter可以修改表的结构，包括添加列、删除列、修改列的数据类型等等。
+- add: 添加列
+- change: 修改列名
+- modify: 修改列的数据类型
+```
+alter table table_name
+add column col1 type1 not null,
+change column col2_old_name col2_new_name type2,
+modify column col3 type3,
+```
+
+4. 表的删除
+```
+delete from table_name
+where condition
+```
+delete可以删除指定位置的数据，通过where进行定位
+```pycon
+truncate table table_name
+```
+truncate可以清空表中的所有数据，但是不会删除表的结构。
+```pycon
+drop table table_name
+```
+drop可以删除表的结构，包括表中的所有数据。
 # SQL 刷题总结
 # 1.topN问题
 一般来说，topN问题可以分为两类：
