@@ -1,5 +1,10 @@
 # <big>Distributed System Concepts</big>
 
+学习路线：\
+Hadoop---Hive---Spark---Flink\
+其中Flink主要是实时处理，而Hadoop和spark等都是离线处理。
+
+
 # 1. 分布式计算框架
 ## 0. Google File System(GFS)<big>
 1. GFS（Google 文件系统）是谷歌（Google）公司开发的分布式文件系统，旨在支持大规模数据存储和处理。GFS 是一种高度可扩展、容错性强、适用于大规模数据的文件系统，它为谷歌的各种应用程序和服务提供了可靠的存储基础架构。

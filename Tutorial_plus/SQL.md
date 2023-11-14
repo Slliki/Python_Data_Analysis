@@ -1,5 +1,5 @@
 # SQL Tips
-## 0. 执行顺序
+## 0. 执行顺序<big>
 SQL语句的执行顺序如下：
 1. `from`：从表中获取数据
 2. `where`：对数据进行过滤
@@ -20,7 +20,7 @@ SQL语句的执行顺序如下：
 - `group by`语句必须出现在`where`语句之后，`order by`语句之前。
 - `group by`语句中的列必须是`select`语句中出现的列，或者是聚合函数的参数。
 - `group by`语句中的列可以是`select`语句中出现的列的别名。但where语句中不能使用别名。
-
+</big>
 
 
 ## 1.使用`with`创建虚拟表
@@ -39,7 +39,7 @@ where ...
 `with`语句的主要作用是将复杂的查询分解为多个简单的查询，提高查询的可读性和可维护性。
 并且使用with可以避免子查询的嵌套，提高查询效率。
 
-## 2. regexp 匹配
+## 2. regexp 匹配<big>
 `regexp`是正则表达式匹配，可以用来匹配字符串，常用于模糊查询。\
 `regexp`的基本语法如下：
 ```
@@ -97,9 +97,9 @@ where col regexp '^[a-zA-Z][a-zA-Z0-9_.-]*\\@leetcode\\.com$'
 以字母（可以是小写或大写字母）开头。
 后面可以是零个或多个字母、数字、下划线、句点或连字符。
 最后以 "@leetcode.com" 结尾。
-如"bob_123@leetcode.com"的邮件地址
+如"bob_123@leetcode.com"的邮件地址</big>
 
-## 3. like 模糊匹配
+## 3. like 模糊匹配<big>
 `like`是模糊匹配，可以用来匹配字符串，常用于模糊查询。\
 `like`的基本语法如下：
 ```
@@ -118,9 +118,9 @@ where col like 'pattern'
 - `'%apple'`：匹配以 "apple" 结尾的任何字符串，如 "pineapple"、"caramel apple" 等。
 - `'_pple'`：匹配以任何字符开头，后跟 "pple" 的字符串，如 "apple" 或 "opple"。
 - `'[aeiou]pple'`：匹配以元音字母开头，后跟 "pple" 的字符串，如 "apple" 或 "epple"。
-- `'[^0-9]'`：匹配不包含数字的任何字符串，如 "apple" 或 "banana"。
+- `'[^0-9]'`：匹配不包含数字的任何字符串，如 "apple" 或 "banana"。</big>
 
-## 4. 使用`case when`进行条件判断
+## 4. 使用`case when`进行条件判断<big>
 `case when`语句可以用于条件判断，类似于`if else`语句。\
 `case when`语句的基本语法如下：
 ```
@@ -137,17 +137,19 @@ from table
 
 if else的语法规则：
 - `if(condition, result1, result2)`：如果条件为真，则返回result1，否则返回result2。
+</big>
 
-
-## 5.空值处理
+## 5.空值处理<big>
 ### 1. 判断空值
 - `is null`：判断是否为空值
 - `is not null`：判断是否不为空值
 - `isnull()`：判断是否为空值，如果为空值则返回 true，否则返回 false
 - `ifnull(expression，replacement)`：判断是否为空值，如果为空值则返回replacement，否则返回原始值
-
-## 6. 设定列值
-`select value as col` 可以将value的值设定为col列的值
+</big>
+## 6. 设定列值<big>
+`select value as col` 可以将value的值设定为col列的值\
+eg:`select 1 as col1` 该语句会返回一列，列名为col1，值为1
+</big>
 
 ## 7. 窗口函数
 ### 1.定义
@@ -168,7 +170,7 @@ where t.rk <= N
 窗口范围定义：
 ![](.SQL_images/62ffe14831cdabcb95a6b3c03f54c7e.png)
 
-#### 2. 常用窗口函数
+#### 2. 常用窗口函数<big>
 - `row_number()`：为每一行添加一个唯一的行号，行号从 1 开始递增。
 - `rank()`：为每一行添加一个排名，如果有相同的值，则会跳过下一个排名。
 - `dense_rank()`：为每一行添加一个排名，如果有相同的值，则不会跳过下一个排名。
@@ -191,9 +193,9 @@ lead(col1, 1, 0) over(order by col3) as lead_col1,
 lag(col1, 1, 0) over(order by col3) as lag_col1
 from table
 ```
-该语句会返回表中col1列的当前行与前一行的值，以及当前行与后一行的值。
+该语句会返回表中col1列的当前行与前一行的值，以及当前行与后一行的值。</big>
 
-## 8. 时间函数
+## 8. 时间函数<big>
 - `year()`：返回日期的年份。
 - `month()`：返回日期的月份。
 - `day()`：返回日期的天数。
@@ -201,9 +203,9 @@ from table
 - `DateDiff(date1, date2)`：返回两个日期之间的天数。
 - `DateAdd(date, interval, unit)`：返回日期加上指定时间间隔后的日期。
 - `DatePart(interval, date)`：返回日期的指定部分。
-- `DateFormat(date, format)`：返回日期的指定格式。
+- `DateFormat(date, format)`：返回日期的指定格式。</big>
 
-## 9. group_concat()函数
+## 9. group_concat()函数<big>
 `group_concat()`函数可以将分组后的多行数据合并为一行\
 `group_concat()`函数的基本语法如下：
 ```
@@ -212,9 +214,9 @@ from table
 group by col1
 ```
 `group_concat()`函数的主要作用是将分组后的多行数据合并为一行，按照指定separator分隔符进行分隔。
+</big>
 
-
-## 10. 字符串处理
+## 10. 字符串处理<big>
 - `left(str, length)`：返回字符串左边指定长度的子串。
 - `right(str, length)`：返回字符串右边指定长度的子串。
 - `substring(str, start, length)`：返回字符串指定位置和长度的子串。
@@ -226,9 +228,9 @@ group by col1
 `select concat(str1, str2, )` 若需要在字符串中添加空格，可以使用`concat(str1, ' ', str2, )`
 
 eg: ```SELECT user_id, CONCAT(UPPER(SUBSTRING(name, 1, 1)), LOWER(SUBSTRING(name, 2))) AS name```
-该查询会返回表中name列的首字母大写，其余字母小写的字符串。
+该查询会返回表中name列的首字母大写，其余字母小写的字符串。</big>
 
-### 11. 增删改
+### 11. 增删改<big>
 1. 表的创建
 ```
 create table table_name if not exist(
@@ -260,19 +262,19 @@ values(v11, v12, ...),
 ```
 其中v11, v12, ...表示第一行的值，v21, v22, ...表示第二行的值，以此类推。
 
-```pycon
+```
 insert ignore into table_name(col1, col2, ...)
 ```
 ignore表示如果插入的数据与表中的数据重复，则忽略该条数据。
 3. 表的修改\
-通过replace将指定列数据修改
+(1) 通过replace将指定列数据修改
 ```
 replace into table_name(col1, col2, ...)
 values(v11, v12, ...),
       (v21, v22, ...),
       ...
 ```
-update可以修改指定位置的数据，通过where进行定位\
+(2) update可以修改指定位置的数据，通过where进行定位\
 
 ````
 update table_name
@@ -281,37 +283,110 @@ set col1 = v11,
     ...
 where condition
 ````
-
 ```
 update table_name
 set col1=if(condition1, new_value, col1)
     col2=if(condition2, new_value, col2)
 ```
-alter可以修改表的结构，包括添加列、删除列、修改列的数据类型等等。
+```
+修改满足条件的具体某个值
+update table_name
+set col_name=replace(col_name, 'old_value', 'new_value')
+where condition
+```
+
+
+(3) alter可以修改表的结构，包括添加列、删除列、修改列的数据类型等等。
 - add: 添加列
 - change: 修改列名
 - modify: 修改列的数据类型
 ```
+ALTER TABLE 表名 ADD 列名/索引/主键/外键等；
+ALTER TABLE 表名 DROP 列名/索引/主键/外键等；
+ALTER TABLE 表名 ALTER 仅用来改变某列的默认值；
+ALTER TABLE 表名 RENAME 列名/索引名 TO 新的列名/新索引名；
+ALTER TABLE 表名 RENAME TO/AS 新表名;
+ALTER TABLE 表名 MODIFY 列的定义但不改变列名；
+ALTER TABLE 表名 CHANGE 列名和定义都可以改变。
+```
+```
+ALTER TABLE <表名> ADD COLUMN <新字段名> <数据类型> [约束条件] [FIRST|AFTER 已存在的字段名];
+
 alter table table_name
 add column col1 type1 not null,
 change column col2_old_name col2_new_name type2,
 modify column col3 type3,
 ```
 
-4. 表的删除
+4. 索引
+
+(1) **使用`create`语句创建索引**
+```
+CREATE [UNIQUE | FULLTEXT | SPATIAL] INDEX index_name ON tbl_name (col_name);
+无法用create语句创建primary-key！！！
+```
+(2) **使用`alter`语句创建索引或primary key**
+```
+alter table table_name
+add [UNIQUE | FULLTEXT | SPATIAL] index/primary key index_name(col1, col2, ...)
+该语句指定了索引可以是唯一索引、全文索引、空间索引以及普通索引。
+```
+alter允许一条语句同时创建多个索引；Create一次只能创建一个索引
+
+(3) **删除索引**:使用drop或alter均可
+```
+drop index index_name on table_name 或
+alter table table_name drop index index_name
+```
+
+5. 表的删除
+
+(1) delete可以删除指定位置的数据，通过where进行定位
 ```
 delete from table_name
 where condition
 ```
-delete可以删除指定位置的数据，通过where进行定位
-```pycon
+注意：语法不允许使用子查询进行删除，如果有需要用到子查询的情况，可以使用下面的语句,通过命名虚拟表来实现
+```
+delete from table_name
+where id in (
+    select* from(
+        select id
+        from table_name
+        where condition
+    ) as t
+)
+```
+
+(2) truncate可以清空表中的所有数据，但是不会删除表的结构。
+```
 truncate table table_name
 ```
-truncate可以清空表中的所有数据，但是不会删除表的结构。
-```pycon
+(3) drop可以删除表的结构，包括表中的所有数据。</big>
+```
 drop table table_name
 ```
-drop可以删除表的结构，包括表中的所有数据。
+
+
+### 12. 创建视图<big>
+视图是一种虚拟的表，具有和物理表相同的功能。\
+创建视图的语法如下：
+```
+create view view_name (col_name1, col_name2..) as
+select ...
+from ...
+where ...
+```
+```
+create view view_name as
+select col1 as col_name1, col2 as col_name2, ...
+from ...
+where ...
+```
+两种写法都可以创建视图，并给视图的列指定名称。\
+视图的主要作用是简化复杂的查询，保护数据安全。
+</big>
+
 # SQL 刷题总结
 # 1.topN问题
 一般来说，topN问题可以分为两类：

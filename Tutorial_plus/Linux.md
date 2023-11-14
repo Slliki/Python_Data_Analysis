@@ -425,3 +425,60 @@ Linux系统常用压缩格式：tar、gzip，zip；
 
 
 ## 6. Linux 部署
+### 1. MySQL 8.x在 CentOS 的安装
+![](.Linux_images/1b1720b2.png)
+![](.Linux_images/037671c3.png)
+
+mysql允许root用户远程登录，可以通过远程登陆来管理mysql数据库，需要修改mysql的配置文件，修改配置文件后，需要重启mysql服务，才能生效。
+
+![](.Linux_images/d5858c07.png)
+
+### 2. 虚拟机的前置准备
+#### 1. 虚拟机克隆
+1. 首先关闭当前Base虚拟机，然后进行完整克隆。对克隆后的虚拟机固定ip地址，然后修改主机名，最后修改hosts文件，将主机名和ip地址进行映射，即可实现虚拟机之间的互相访问。
+![](.Linux_images/79030b94bec774267f7b7a1b53d69cd.png)
+
+将ip地址分别设置为“192.168.88.101/102/103” 代表3个克隆虚拟机
+
+2. 在Windows系统的hosts文件中添加映射：\
+打开hosts文件：`C:\Windows\System32\drivers\etc\hosts`\
+添加映射：
+```
+192.168.88.101 node1
+192.168.88.102 node2
+192.168.88.103 node3
+```
+在linux系统的hosts文件中添加映射：
+`vim /etc/hosts`\
+添加映射:与windows一致即可
+
+3. 配置SSH免密登录
+由于后续需要远程登陆以及远程执行命令，需要在多个服务器切换，为方便起见，配置三台node服务器的绵密互相SSH登录：\
+- 在每台机器执行：`ssh-keygen -t rsa -b 4096` 表示生成密钥对，然后一路回车即可，生成的密钥对在`~/.ssh`目录下，其中`id_rsa`为私钥，`id_rsa.pub`为公钥。
+- 在每台机器都执行：\
+```
+ssh-copy-id node1
+ssh-copy-id node2
+ssh-copy-id node3
+```
+执行完后三个服务器之间完成root用户之间免密互通，可以通过`ssh node1`命令切换到node1服务器（主机），然后执行`exit`命令切换回原服务器。
+
+4. 创建Hadoop用户并配置免密互通登录
+由于实际开发中，不会使用root用户进行开发，所以需要创建一个Hadoop用户，然后配置免密登录，方便开发。\
+- 在每台机器执行：`useradd hadoop`创建hadoop用户
+- 在每台机器执行：`passwd hadoop`设置hadoop用户密码：123456
+- 在每台机器均切换到hadoop用户：`su - hadoop`，执行`ssh-keygen -t rsa -b 4096`命令生成密钥对
+- 在每台机器执行：
+```
+ssh-copy-id node1
+ssh-copy-id node2
+ssh-copy-id node3
+```
+与root用户免密互通类似，此时三个hadoop用户也可以通过`ssh node1`命令切换到node1服务器（主机）进行免密互通
+
+#### 2. JDK部署
+1. JDK指的是Java Development Kit，是Java开发工具包，包含了Java开发所需要的各种工具，如Java编译器、Java运行环境、Java文档生成器等。\
+由于大数据很多软件都需要java环境支持，所以需要预先在三台服务器上部署JDK环境。
+2. JDK环境配置
+![](.Linux_images/a6cf27ca9abb188ad29edb167a07d41.png)
+![](.Linux_images/9daaa51ab358156758866d15ed6cbb9.png)
