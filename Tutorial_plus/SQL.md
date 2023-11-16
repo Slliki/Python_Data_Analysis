@@ -11,10 +11,10 @@ SQL语句的执行顺序如下：
 
 #### limit的写法
 - `limit N`：返回前N行
-- `limit N,M`：从第N行开始，返回M行
+- `limit N,M`：从第N行开始，返回M行(N为偏移量，M为需要返回的数量)
 - `limit M offset N`：用于限制查询结果中返回的行数，并指定一个偏移量，从查询结果的第 N+1 行开始。
 例如，LIMIT 10 OFFSET 5 将返回查询结果的从第6行开始的10行。
-- `limit M N`: 从第M行开始，返回N行
+- `limit n*(i-1),n` 用于分页，表示每页显示n条记录，要显示第i页数据
 
 #### group by规则
 - `group by`语句必须出现在`where`语句之后，`order by`语句之前。
@@ -213,12 +213,15 @@ select col1, group_concat(col2 order by col3 separator ', ')
 from table
 group by col1
 ```
-`group_concat()`函数的主要作用是将分组后的多行数据合并为一行，按照指定separator分隔符进行分隔。
+`group_concat()`函数的主要作用是将分组后的多行数据合并为一行，按照指定separator分隔符进行分隔。\
+group_concat使用的分组依据为group by语句，本身没有分组效果
 </big>
 
 ## 10. 字符串处理<big>
 - `left(str, length)`：返回字符串左边指定长度的子串。
 - `right(str, length)`：返回字符串右边指定长度的子串。
+
+一般left和right用于order by或where等条件语句中按指定位置字符串排序
 - `substring(str, start, length)`：返回字符串指定位置和长度的子串。
 - `lower(str)`：将字符串转换为小写。
 - `upper(str)`：将字符串转换为大写。
@@ -386,6 +389,30 @@ where ...
 两种写法都可以创建视图，并给视图的列指定名称。\
 视图的主要作用是简化复杂的查询，保护数据安全。
 </big>
+
+### 13. exists语句<big>
+exists语句用于判断子查询是否为空，如果子查询为空，则返回false，否则返回true。\
+exists语句的基本语法如下：
+```
+select ...
+from ...
+where exists (
+    select ...
+    from ...
+    where ...
+)
+```
+表示如果子查询返回的结果不为空，则返回true，否则返回false。\
+eg：查询出所有在表1中出现过，但是没有在表2中出现过的人员。
+```
+select *
+from table1 as t1
+where not exists (
+    select *
+    from table2 as t2
+    where t1.id = t2.id
+)
+```
 
 # SQL 刷题总结
 # 1.topN问题

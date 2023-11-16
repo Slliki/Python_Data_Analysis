@@ -1,4 +1,4 @@
-# Linux Basic Tutorial
+# Linux and Virtual Machines
 ## 1. 环境配置
 ### 1. 虚拟机 VM
 1. 虚拟机是一种虚拟的计算机系统，它是在一台物理计算机上模拟出来的另一台计算机，可以在虚拟机上安装操作系统，运行应用程序，就像在真实计算机上一样。\
@@ -61,6 +61,7 @@ Home目录：每个用户都有一个Home目录，用于存放用户的文件，
 工作目录：用户当前所在的目录，可以通过`pwd`命令查看当前所在的目录，可以通过`cd`命令切换工作目录。\
 比如：Linux用户yhb的Home目录为`/home/yhb`，工作目录为`/home/yhb`，可以通过`cd /home/yhb`命令切换到Home目录，也可以通过`cd`命令切换到Home目录。
 3. cd命令 `cd [path]`: 切换目录\
+返回上级目录：`cd ..`\
 pwd命令 `pwd`：查看当前所在的工作目录\
 4. mkdir命令 `mkdir [-p] [path]`：创建目录\
 mkdir：创建一个名为xxx的目录\
@@ -433,7 +434,7 @@ mysql允许root用户远程登录，可以通过远程登陆来管理mysql数据
 
 ![](.Linux_images/d5858c07.png)
 
-### 2. 虚拟机的前置准备
+### 2. 集群化配置虚拟机的前置准备
 #### 1. 虚拟机克隆
 1. 首先关闭当前Base虚拟机，然后进行完整克隆。对克隆后的虚拟机固定ip地址，然后修改主机名，最后修改hosts文件，将主机名和ip地址进行映射，即可实现虚拟机之间的互相访问。
 ![](.Linux_images/79030b94bec774267f7b7a1b53d69cd.png)
@@ -482,3 +483,83 @@ ssh-copy-id node3
 2. JDK环境配置
 ![](.Linux_images/a6cf27ca9abb188ad29edb167a07d41.png)
 ![](.Linux_images/9daaa51ab358156758866d15ed6cbb9.png)
+```
+mkdir -p /export/server
+tar -zxvf jdk-8u361-linux-x64.tar.gz -C /export/server
+ln -s /export/server/jdk1.8.0_361 /export/server/jdk
+
+vim /etc/profile
+#在文件末尾添加以下内容
+export JAVA_HOME=/export/server/jdk
+export PATH=$PATH:$JAVA_HOME/bin
+
+source /etc/profile
+rm -f /usr/bin/java
+ln -s /export/server/jdk/bin/java /usr/bin/java
+```
+
+#### 3.防火墙，SELinux和时间同步
+1. 关闭防火墙和SELinux
+由于集群化软件之间需要通过端口互相通讯，为了避免网络不同问题，可以简单的直接在集群内部关闭防火墙\
+```
+systemctl stop firewalld
+systemctl disable firewalld
+```
+SELinux是一种安全机制，可以限制用户对文件的访问,来提高系统稳定。当前可以直接关闭，避免后面运行问题。
+```
+vim /etc/sysconfig/selinux
+#将第七行 SELINUX=enforcing 改为 SELINUX=disabled
+#保存推出后重启虚拟机即可
+```
+上述代码操作需要在每台虚拟机都执行
+
+2. 修改时区并配置自动时间同步
+以下操作在所有虚拟机均执行\
+安装ntp程序：`yum install ntp`\
+更新时区：
+```
+rm -f /etc/localtime 删除系统原本时间信息
+sudo ln -s /usr/share/zoneinfo/Asia/Shanghai /etc/localtime 创建软链接将上海时区连接到系统时间
+```
+同步时间：`ntpdate -u ntp.aliyun.com`\
+设置开机自动启动：`systemctl start-->enable ntpd`
+
+<big>完成上述操作后虚拟机集群配置已经基本完成，最好执行快照操作保存当前状态，以便后续使用。</big>
+
+### 4. 通过云平台部署虚拟化集群
+#### 1，阿里云平台
+(1) 概念\
+- vpc: virtual private cloud，虚拟专有网络，是一种隔离的网络环境，可以在该网络环境中创建云资源，如云服务器、云数据库等。
+- 子网：子网是vpc的一部分，可以在子网中创建云资源，如云服务器、云数据库等。
+- 安全组：安全组是一种虚拟防火墙，用于控制云服务器的网络访问，可以通过安全组设置云服务器的入站和出站规则，从而控制云服务器的网络访问。
+- 云服务器：云服务器是一种虚拟化的服务器，可以在云服务器上部署应用程序，如部署Hadoop集群。\
+    - 阿里云服务器ECS：Elastic Compute Service，弹性计算服务，是阿里云提供的云服务器
+
+(2)主要流程：\
+配置vpc和子网：创建专有网络\
+![](.Linux and VMs_images/63f7ae03.png)
+
+配置安全组：\
+![](.Linux and VMs_images/ae826ffe.png)
+![](.Linux and VMs_images/8dc5f49d.png)
+![](.Linux and VMs_images/b98ea05b.png)
+
+购买云服务器ECS：\
+- 在ECS购买界面，确认操作系统和储存容量等信息，指定VPC和子网，设置内网IP地址为：192.168.88.101/102/103对应三个node的虚拟机
+- 分配之前创建好的安全组，并点击**分配公网ipv4地址**
+- 进入下一步，选择登录使用ssh密钥对，并用root权限登录，点击创建密钥对会下载密钥对文件，妥善保存该文件。
+
+![](.Linux and VMs_images/1de8181a.png)
+
+(3) 同样的方法为node2和3创建ECS服务器
+![](.Linux and VMs_images/1137d5ef.png)
+
+(4) 配置云服务器\
+之前对本地虚拟机进行了一系列操作如关闭防火墙，配置免密登录等，现在对云服务器只需进行以下配置：\
+- 配置SSH免密登录
+- 配置JDK环境
+- 配置hosts文件完成主机名映射
+
+#### 2. AWS
+一般使用AWS EC2(Elastic Compute Cloud)创建云服务器，AWS EC2是一种弹性计算服务.\
+关于EC2的创建在AWS tips Module 6 Compute 中有详细介绍。

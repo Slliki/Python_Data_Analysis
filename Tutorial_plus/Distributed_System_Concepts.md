@@ -61,10 +61,13 @@ F1 是谷歌（Google）公司开发的分布式关系数据库，用于存储�
 ## 1. Hadoop
 Hadoop的组成：HDFS(分布式文件系统)，YARN(资源调度框架)，MapReduce(分布式计算框架)
 
+Hadoop的架构：中心和主从架构，主节点NameNode作为Master负责管理集群，从节点DataNode作为Slave负责存储数据和计算任务
+
 - HDFS：Hadoop Distributed File System，分布式文件系统，用于存储大数据。本质上是一个文件系统，将一个大文件划分为小文件库存储在各个机器上(DataNode),
     通过NameNode管理各个DataNode，提供文件系统的访问接口。
-  - NameNode：管理各个DataNode，提供文件系统的访问接口
-  - DataNode：存储文件的数据块
+  - NameNode：管理各个DataNode，提供文件系统的访问接口，是一个独立进程
+  - DataNode：存储文件的数据块，是一个独立进程
+  - SecondaryNameNode：辅助NameNode，定期将NameNode的元数据备份到本地磁盘，是一个独立进程
 - YARN：Yet Another Resource Negotiator，资源调度框架，用于管理集群资源
 - MapReduce：分布式计算框架，用于分布式计算
     - map: 将输入的数据切分为若干个小数据，然后将小数据分发到各个机器上进行计算
@@ -114,10 +117,9 @@ Hadoop的组成：HDFS(分布式文件系统)，YARN(资源调度框架)，MapRe
 3. Flink可以与多个数据源集成，包括Kafka、HDFS、Kinesis等。
 
 ## 4. Kafka
-1. Kafka是一个分布式流处理***平台***，用于处理实时数据流。
-2. Kafka的核心是消息队列，用于存储数据，然后将数据分发到各个机器上进行计算。
-3. Kafka基于发布-订阅模型，它允许生产者将消息发布到一个或多个主题，而消费者可以订阅这些主题来接收消息。
-Kafka的持久性和高吞吐量使其适用于日志收集、事件驱动架构、实时监控和流数据处理。
+Kafka 是一个分布式的流处理平台和**消息队列系统**，最初由LinkedIn开发，并作为Apache项目开源。
+它被设计用于高吞吐量、可扩展性和容错性，用于处理和存储实时数据流，
+通常用于日志收集、事件流处理、监控、报警和大规模数据流处理等场景
 
 
 
