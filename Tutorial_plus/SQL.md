@@ -449,6 +449,8 @@ limit N`\
 `table as t1, table as t2, table as t3`\
 `where t1.id=t2.id-1 and t2.id=t3.id-1 and t1.num=t2.num and t2.num=t3.num`
 即保证id连续，num相同则说明连续出现。
+
+
 ## 2.重复
 同样使用多表自连：\
 `where t1.id!=t2.id and t1.num=t2.num`\
@@ -553,5 +555,178 @@ eg：查询出每个学生参加每一门科目测试的次数，结果按 stude
 ![](.SQL_images/66ee8971.png)
 
 
-# 8.递归问题
+# 例题总结
+## 1. 用户登录问题
+eg1.每个人最近登录的日期
 
+![img_8.png](img_8.png)
+![img_9.png](img_9.png)
+
+思路：max（date）即可找出最近日期，但是需要用子查询嵌套，否则语法报错
+```
+select u.name as u_n, c.name as c_n, l.date
+from user as u
+left join login as l on u.id=l.user_id
+left join client as c on l.client_id=c.id
+where (l.user_id,l.date) in(
+    select user_id,max(date) as date
+    from login
+    group by user_id
+)
+order by date
+```
+eg 2. 新登录用户的次日成功的留存率,使用login表
+
+![](.SQL_images/ecd0515d.png)
+
+user_id为1的用户在2020-10-12第一次新登录了，在2020-10-13又登录了，算是成功的留存\
+user_id为2的用户在2020-10-12第一次新登录了，在2020-10-13又登录了，算是成功的留存\
+user_id为3的用户在2020-10-12第一次新登录了，在2020-10-13没登录了，算是失败的留存\
+user_id为4的用户在2020-10-13第一次新登录了，在2020-10-14没登录了，算是失败的留存\
+故次日成功的留存率为 2/4=0.5
+
+思路：找出分子/分母，分子为首次登录且次日登录的数，分母为首次登录数\
+分子的限制通过where语句，令date in (select date_add(min(date),interval 1 day))\
+分母直接选择distinct user_id进行count即可
+```
+select 
+round(count(distinct user_id)*1.0/(select count(distinct user_id) from login), 3) as p
+from login
+
+#分子来自于下面where条件筛选的表，表示date应该在最小日期后一天中存在
+where (user_id,date) in
+(
+    select user_id,date_add(min(date),interval 1 day) as date
+    from login
+    group by user_id
+)
+```
+
+
+
+
+eg 3. 每日登录的新用户数量\
+![](.SQL_images/cdbd3ca4.png)
+![](.SQL_images/e97b1b36.png)
+
+核心思想：新用户数即登录的当前日期是该用户登陆日期最小值\
+即count（user_id） where date=min(date)即可
+```
+# 法一：子查询：当date是该用户的最小日期时，返回user_id，并count(distinct user_id)
+select date,
+    count(distinct case 
+    when (user_id,date) in (select user_id,min(date) from login group by user_id)
+    then user_id else null end) as new_user_count
+from login
+group by date
+order by date;
+
+# 法二：公共表表达式
+选出min(date)作为firstlogin表，然后与login表进行连接
+
+WITH FirstLogin AS (
+    SELECT user_id, MIN(date) AS first_login_date
+    FROM login
+    GROUP BY user_id
+)
+
+SELECT l.date, 
+       COUNT(DISTINCT fl.user_id) AS new_user_count
+FROM login l
+LEFT JOIN FirstLogin fl 
+ON l.user_id = fl.user_id #先通过user_id连接
+AND l.date = fl.first_login_date #再满足条件login表的date必须是首次登陆日，则为新用户
+GROUP BY l.date;
+order by l.date;
+``` 
+
+eg 4:每个日期的新用户留存率。同样使用login表。下面是预期输出
+
+![img_7.png](img_7.png)
+
+#### 确定总体问题
+- 关键问题：每个日期 新用户 的次日留存率
+- 次要问题：结果保留小数点后面3位数(3位之后的四舍五入)（round），分母不为零（ifnull处理）
+- 次要问题：并且查询结果按照日期升序排序 group by + order by
+#### 分析关键问题（约束条件）
+- 每个日期的新用户数--分母
+- 每个日期的新用户次日留存--分子
+  - 次日登录：使用`date_add(date,interval 1 day)`或`datediff(date1,date2)=1`来判断
+- 求比率 （/）
+
+1. 究竟将约束条件放在哪里？用什么关键字好？下面提供两个角度\
+【角度① 分析关系】：既然求比率，就要分别求分子分母，他们两属于包含关系，所以可以根据‘漏斗模型’，将约束条件放在from left join中描述（下面的方法一详细讲述）\
+【角度② 分析求和方法】：计数**count（直接法）**或 赋值后，**间接计数sum或count（间接法）**。
+    如果用间接法，那么首先要赋值，而赋值可在比率公式上直接利用case when插入约束条件解决；
+    如果用直接法，则`case when`和漏斗模型两种都可用。
+
+
+2. 用什么来求数值？count还是sum？\
+若用角度①，则要用count而不能用sum来聚合符合条件的数量，因为条件写在from left join中并没有对其赋值\
+若用角度②，则count和sum都可以，因为用的case when 中有赋值，而且仅仅是计数，所以两者都能用。角度②具体如下：
+```
+    COUNT（CASE WHEN THEN 1 ELSE NULL END）-- 跳过NULL值
+    SUM（CASE WHEN THEN 1 ELSE 0或NULL END）-- 跳过NULL值
+```
+
+#### 方法一：间接法
+粗框架：放在from left join中。类比拿来主义，
+因为已经在from中写好约束条件，所以直接拿from表格中的某些字段用于count的字段
+```
+select date,
+IFNULL(ROUND(count()/count(),3,)
+from （select 去重的日期表）
+    left join on （select 新用户的首次登陆日期表 ）
+    left join on （select 新用户的次日登录日期表 ）
+group by
+ORDER BY 
+```
+具体实现：
+```
+select date,
+ifnull(round(count(distinct t2.user_id)/count(t1.user_id),3),0) as retention_rate
+from (select distinct date 
+      from login
+      group by date) as t0
+# t1为分母
+left join (select user_id,min(date) as first_date
+          from login
+          group by user_id) t1 on t0.date=t1.first_date
+# t2为分子
+left join login t2 on t1.user_id=t2.user_id 
+                   and date_add(t1.first_date,interval 1 day)=t2.date
+group by t0.date
+order by t0.date
+```
+
+#### 方法二：直接法
+粗框架：放在比率（分子分母）的case when中 
+```
+SELECT date,
+IFNULL(ROUND(SUM(CASE WHEN ...) /(SUM(CASE WHEN ...),3),0)
+FROM login
+GROUP BY date
+ORDER BY date;
+```
+具体实现：
+```
+select date,
+ifnull(round(sum(case #分子，当date同时出现于first_date和date的前一天，说明当前日是first_date的次日登录
+                when (user_id,date) in 
+                (select user_id, date_add(date,interval -1 day) as last_day
+                from login group by user_id) 
+                
+                and (user_id,date) in 
+                (select user_id,min(date) as first_date 
+                from login group by user_id) 
+                then 1 else 0 end)/
+            
+            sum(case #分母，当date为first_date时，说明是首次登录
+                when (user_id,date)in 
+                (select user_id,min(date) 
+                from login group by user_id)
+                then 1 else 0 end) ,3),0) as p
+from login
+group by date
+order by date
+```
