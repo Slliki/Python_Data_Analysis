@@ -174,6 +174,9 @@ where t.rk <= N
 - `row_number()`：为每一行添加一个唯一的行号，行号从 1 开始递增。
 - `rank()`：为每一行添加一个排名，如果有相同的值，则会跳过下一个排名。
 - `dense_rank()`：为每一行添加一个排名，如果有相同的值，则不会跳过下一个排名。
+
+通常使用rank和dense_rank进行排名，rank会跳过下一个排名，dense_rank不会跳过下一个排名。\
+使用row_number进行排序时，不存在并列排名。
 - `sum()`：计算当前行与其他行之间的累计和。
 - `avg()`：计算当前行与其他行之间的累计平均值。
 - `count()`：计算当前行与其他行之间的累计数量。
@@ -203,7 +206,9 @@ from table
 - `DateDiff(date1, date2)`：返回两个日期之间的天数。
 - `DateAdd(date, interval, unit)`：返回日期加上指定时间间隔后的日期。
 - `DatePart(interval, date)`：返回日期的指定部分。
-- `DateFormat(date, format)`：返回日期的指定格式。</big>
+- `Date_Format(date, format)`：返回日期的指定格式。
+  - eg：`select Date_Format(col1, '%Y-%m-%d')` 该语句会返回表中col1列的日期，格式为YYYY-MM-DD
+</big>
 
 ## 9. group_concat()函数<big>
 `group_concat()`函数可以将分组后的多行数据合并为一行\
@@ -425,6 +430,9 @@ where not exists (
 基本思路：使用子查询得到一个虚拟表，该表应该是按某字段进行rank排序得到rk列的表，
 然后从该表选取目标字段和rk列，再按rk列进行排序，最后选取前N行即可。
 
+使用虚拟表得到rk原因：WHERE 子句是在 SELECT 子句中定义的列别名（如此处的 rk）可见之前执行的。
+也就是说，不能在 WHERE 子句中直接使用窗口函数 rank() 计算出来的别名 rk。
+
 `select t.col1,t.col2
 from (select col1,col2,
 dense_rank() over(partition by col1 order by col3 desc) as rk
@@ -473,15 +481,42 @@ row_number()会为结果集的行分配唯一行号，必然连续。此时当id
 ![](.sql_images/3cf16ab0.png)\
 可以看到当id连续，id-rk相同。则用上表为虚拟表t1，加入主查询：\
 ![](.sql_images/9c90fbf8.png)\
-满足每个rk相同的组里>=3行则表示至少有连续三行id，且每行人数>=100
+满足每个rk相同的组里>=3行则表示至少有连续三行id，且每行人数>=100</big>
 
 
 # 3.中位数问题<big>
 中位数是大家都熟悉的概念，但是在SQL题目，查询某个字段值为该字段中位数的记录并不是很好求，需要根据中位数的定义特性进行求取，
 有时候也可以用辅助列帮忙。题目通常为：求数字的中位数、求薪资的中位数等等。
 
-`SELECT MEDIAN(column_name) FROM table_name;`</big>
+mysql中没有专门求中位数的函数，因此需要使用其他函数配合，常见为count，floor：
+```sql
+select
+   # start和end为中位数的起始和结束的位置
+   floor((count(*)+1)/2) as start,
+   
+   floor((count(*)+1)/2)+if(COUNT(*) % 2=1,0,1) as end 或者
+   ceiling((count(*)+1)/2) as end
+```
 
+另一思路：当某一数的正序和逆序累计均大于整个序列的数字个数的一半即为中位数\
+```sql
+select grade
+from
+    (select grade,
+    (select sum(number) from class_grade) as total,
+    
+    sum(number)over(order by grade) a, -- 求正序
+    sum(number)over(order by grade desc) b  -- 求逆序
+     
+     from class_grade
+    order by grade)t
+
+where a >= total/2 and b >= total/2  -- 正序逆序均大于整个数列数字个数的一半
+order by grade;
+```
+![img_24.png](img_24.png)
+
+即：图中B和C为中位数所在grade</big>
 
 # 4.累计区间计算问题<big>
 累计区间计算问题指的是对于某一字段，需要计算该字段在某一区间内的累计值，比如求某一天之前的累计销售额、求某一天之前的累计订单数等等。
@@ -556,14 +591,14 @@ eg：查询出每个学生参加每一门科目测试的次数，结果按 stude
 
 
 # 例题总结
-## 1. 用户登录问题
-eg1.每个人最近登录的日期
+## 1. 用户登录问题<big>
+#### eg1.每个人最近登录的日期
 
 ![img_8.png](img_8.png)
 ![img_9.png](img_9.png)
 
 思路：max（date）即可找出最近日期，但是需要用子查询嵌套，否则语法报错
-```
+``` mysql
 select u.name as u_n, c.name as c_n, l.date
 from user as u
 left join login as l on u.id=l.user_id
@@ -605,13 +640,13 @@ where (user_id,date) in
 
 
 
-eg 3. 每日登录的新用户数量\
+#### eg 3. 每日登录的新用户数量
 ![](.SQL_images/cdbd3ca4.png)
 ![](.SQL_images/e97b1b36.png)
 
 核心思想：新用户数即登录的当前日期是该用户登陆日期最小值\
 即count（user_id） where date=min(date)即可
-```
+```sql
 # 法一：子查询：当date是该用户的最小日期时，返回user_id，并count(distinct user_id)
 select date,
     count(distinct case 
@@ -640,7 +675,7 @@ GROUP BY l.date;
 order by l.date;
 ``` 
 
-eg 4:每个日期的新用户留存率。同样使用login表。下面是预期输出
+#### eg 4:每个日期的新用户留存率。同样使用login表。下面是预期输出
 
 ![img_7.png](img_7.png)
 
@@ -664,7 +699,7 @@ eg 4:每个日期的新用户留存率。同样使用login表。下面是预期�
 2. 用什么来求数值？count还是sum？\
 若用角度①，则要用count而不能用sum来聚合符合条件的数量，因为条件写在from left join中并没有对其赋值\
 若用角度②，则count和sum都可以，因为用的case when 中有赋值，而且仅仅是计数，所以两者都能用。角度②具体如下：
-```
+```sql
     COUNT（CASE WHEN THEN 1 ELSE NULL END）-- 跳过NULL值
     SUM（CASE WHEN THEN 1 ELSE 0或NULL END）-- 跳过NULL值
 ```
@@ -672,7 +707,7 @@ eg 4:每个日期的新用户留存率。同样使用login表。下面是预期�
 #### 方法一：间接法
 粗框架：放在from left join中。类比拿来主义，
 因为已经在from中写好约束条件，所以直接拿from表格中的某些字段用于count的字段
-```
+```mysql
 select date,
 IFNULL(ROUND(count()/count(),3,)
 from （select 去重的日期表）
@@ -682,7 +717,7 @@ group by
 ORDER BY 
 ```
 具体实现：
-```
+```mysql
 select date,
 ifnull(round(count(distinct t2.user_id)/count(t1.user_id),3),0) as retention_rate
 from (select distinct date 
@@ -701,15 +736,15 @@ order by t0.date
 
 #### 方法二：直接法
 粗框架：放在比率（分子分母）的case when中 
-```
+```mysql
 SELECT date,
 IFNULL(ROUND(SUM(CASE WHEN ...) /(SUM(CASE WHEN ...),3),0)
 FROM login
 GROUP BY date
 ORDER BY date;
 ```
-具体实现：
-```
+具体实现：</big>
+```mysql
 select date,
 ifnull(round(sum(case #分子，当date同时出现于first_date和date的前一天，说明当前日是first_date的次日登录
                 when (user_id,date) in 
@@ -729,4 +764,308 @@ ifnull(round(sum(case #分子，当date同时出现于first_date和date的前一
 from login
 group by date
 order by date
+```
+
+
+## 2， 考试分数问题
+#### eg1. 查询用户分数大于其所在工作(job)分数的平均分的所有grade的属性
+
+![img_11.png](img_11.png)
+
+思路：创建虚表得出各个job的平均分，在join主表using(job)进行比较
+``` mysql
+with t1 as(
+    select job,avg(score) as avg_s
+    from grade
+    group by job
+)
+
+select a.id,a.job,a.score
+from grade a
+left join t1 using(job)
+where a.score>t1.avg_s
+order by a.id
+```
+
+
+#### eg2. topN问题：找出每个job中score前二的用户，考虑并列情况。
+![img_12.png](img_12.png)
+
+法一：使用窗口函数dense_rank()\
+使用窗口函数`dense_rank()`会为每一行添加一个排名,保证并列情况下不会跳过下一个排名
+```mysql
+# 创建虚拟表得到rank列
+with t1 as (
+    select *,
+    dense_rank() over (partition by language_id order by score desc) as rk
+    from grade
+)
+
+#使用主查询连接language表，选取rk<=2的行
+select t1.id,l.name,t1.score
+from t1
+left join language as l
+on t1.language_id=l.id
+where t1.rk<=2
+order by l.name,t1.score desc
+```
+
+法二：使用子查询\
+使用子查询通过嵌套，我们实际上是在计算对于当前行g1，在它所在的语言类别中，
+有多少个独特的分数是不低于它的。这个数值实际上反映了g1的排名信息。
+```mysql
+select count(distinct g2.score)
+from grade g2
+where g2.score >= g1.score and g1.language_id = g2.language_id
+```
+如果这个数是1，意味着没有其他分数高于g1，所以g1是第一名。\
+如果这个数是2，意味着有一个独特的分数高于g1，所以g1是第二名。\
+
+完整语句：
+```mysql
+select g1.id, l.name, g1.score
+from grade g1 join language l on g1.language_id=l.id 
+where 
+(
+    select count(distinct g2.score) 
+    from grade g2 
+    where g2.score>=g1.score and g1.language_id=g2.language_id
+) <=2 
+order by l.name,g1.score desc
+```
+
+#### eg3.输出中位数位置范围
+![img_14.png](img_14.png)![img_13.png](img_13.png)
+- `floor()`:返回不大于指定数字的最大整数,即向下取整
+- `ceil()`:返回不小于指定数字的最小整数,即向上取整
+
+法一：使用floor函数得到中位数位置的上下限\
+`floor(( count(*) + 1 ) / 2 ) AS "start"`: 这里计算每个job分组的中位数起始位置。
+count(*)会计算每个分组中的记录数。
+由于中位数是位于中间的数值，所以这个表达式通过加1再除以2的方式来定位中位数的起始位置。
+如果记录总数是奇数，这将指向中位数；如果是偶数，这将指向中间两个数中的第一个。
+```mysql
+select job,
+   floor((count(*)+1)/2) as start,
+   
+   floor((count(*)+1)/2)+if(COUNT(*) % 2=1,0,1) as end 或者
+   ceiling((count(*)+1)/2) as end
+FROM grade 
+GROUP BY job 
+ORDER BY job
+```
+
+法二：使用case语句
+中位数的特征：
+- 当个数为偶数时，中位数的起始位置等于个数/2，结束位置等于个数/2+1
+- 当个数为奇数时，中位数的起始位置等于向上取整（个数/2），结束位置等于向上取整（个数/2）
+- 用除以2的余数是否为0来判断奇偶，%2=0 
+- 记得取整数，本题用ceiling函数向上取整（返回不小于该数的最小整数值）或round(数，0)四舍五入取整都可。
+
+```mysql
+select job,
+        #start位置，无论奇偶都是count/2向上取整
+        ceiling(count(score)/2) as start,
+        
+        #end位置，偶数时为count/2+1，奇数时为count/2向上取整
+        case when count(score)%2=0 
+        then ceiling(count(score)/2+1) 
+        else ceiling(count(score)/2)
+        end as end1
+from grade
+group by job
+order by job;
+```
+
+#### eg4.输出中位数位置上的分数
+![img_15.png](img_15.png)
+
+
+```mysql
+# 表1：用row_number()函数得到每个job组内的分数排名
+with t1 as (
+    select *,
+    row_number() over (partition by job order by score desc) as t_rank
+    from grade
+),
+
+# 表2：用floor和ceiling函数得到每个job组内的中位数start和en**d位置
+t2 as (
+    select job,
+    floor((count(*)+1)/2) as start,
+    ceiling((count(*)+1)/2) as end
+    from grade
+    group by job
+)
+
+# 主查询：将表1和表2连接，选取t_rank=start或t_rank=end的行，都为中位数位置信息
+select t1.id, t1.job, t1.score, t1.t_rank
+from t1
+left join t2 using (job)
+where t1.t_rank = t2.start or t1.t_rank=t2.end
+order by t1.id;
+```
+
+## 3. 课程订单分析(条件筛选
+#### eg1. where语句筛选出满足条件的订单
+tips：无法直接group by user_id,因为输出结果需要select all，
+所以需要用子查询嵌套或使用公共表表达式
+
+**可以尝试将需要select的列都进行group by，有时候可以得到正确结果！！**
+
+![img_16.png](img_16.png)
+
+```mysql
+# 法一：子查询嵌套
+select id,user_id,product_name,status, client_id, date
+from order_info
+
+# 子查询筛选一次条件，得到的user_id不一定是最终需要的行，因为这些user_id可能还买了其他课程
+# 或者status='un_completed'等其他的杂数据，我们需要再次过滤一遍
+where status='completed'
+      and date>'2025-10-15'
+      and product_name in ('Java','Python','C++')
+      and user_id in (
+        select user_id from order_info
+                 where status='completed'
+                 and date>'2025-10-15'
+                 and product_name in ('Java','Python','C++')
+        group by user_id
+        having count(id)>=2
+      )
+order by id
+
+# 法二：公共表表达式
+with t1 as (
+    select user_id
+    from order_info
+    where status='completed'
+        and date>'2025-10-15'
+        and product_name in ('Java','Python','C++')
+    group by user_id
+    having count(id)>=2
+)
+
+select *
+from order_info
+where user_id in (select user_id from t1)
+        and status='completed'
+        and date>'2025-10-15'
+        and product_name in ('Java','Python','C++')
+order by id
+
+# 法三：窗口函数 count() over (),使用partition by就不需要group by
+# 此时只需要在主查询筛选number>=2即可
+with t1 as (
+    select *,
+    count(id) over(partition by user_id) as number
+    from order_info
+    where status='completed'
+        and date>'2025-10-15'
+        and product_name in ('Java','Python','C++')
+)
+
+select id,user_id,product_name,status, client_id, date
+from t1
+where t1.number>=2
+order by t1.id
+```
+
+#### eg2. TopN问题：筛选第一，第二个日期
+输出满足条件的每个用户的第一次和第二次购买日期
+
+tip：使用窗口函数对date进行分组排序，找出前两个日期即可 
+这题row_number/rank/dense_rank都可以成功输出
+`row_number() over (partition by user_id order by date)`
+
+![img_17.png](img_17.png)
+
+```mysql
+with t1 as (
+    select *,
+    row_number() over (partition by user_id order by date) as rn,
+    count(id) over (partition by user_id) as number
+    from order_info
+    where status = 'completed'
+        and date > '2025-10-15'
+        and product_name in ('Java','Python','C++')
+)
+
+select user_id,
+
+## 泛用模板：挑选topN，使用(case when rank=1/2/3... then .. end)
+min(case when rn = 1 then date end) as first_buy_date,
+min(case when rn = 2 then date end) as second_buy_date,
+
+number as cnt
+from t1
+where number >= 2
+group by user_id, number
+order by user_id;
+```
+
+#### eg3. 分组问题，加入新值
+
+![img_18.png](img_18.png)
+
+```mysql
+# t1选出满足条件的全部列，并设置count（id）
+with t1 as (
+    select *,
+    count(id) over (partition by user_id) as cnt
+    from order_info
+    where status='completed'
+        and date>'2025-10-15'
+        and product_name in ('Java','Python','C++')
+),
+
+# t2选出t1的id，is_group_buy,cnt列，用where筛选购买数量>=2的行,
+# 并与client表相连得到client_name
+t2 as (
+    select t1.id,t1.is_group_buy,c.name,t1.cnt
+from t1
+left join client as c on t1.client_id=c.id
+where t1.cnt>=2
+order by t1.id
+)
+
+# 主查询：用case when语句将is_group_buy='Yes'的行的name改为'GroupBuy'，
+# 否则使用name列的值，得到新列source
+# 同时count(id) 得到目标输出的cnt列（此时需要group by）
+select 
+case when is_group_buy='Yes' then 'GroupBuy' else name end as source,
+count(id) as cnt
+from t2
+group by source
+order by source
+```
+
+## 4. 字符串处理函数；多表连接进行筛选
+
+![img_22.png](img_22.png)
+![img_23.png](img_23.png)
+
+思路：分别通过时间条件选出两个表代表2025和2026年的数据，然后用job和月份进行连接，最后用case when语句进行筛选
+```mysql
+# t1选出2025年的数据
+with t1 as(
+    select job, date_format(date,'%Y-%m') as first_year_mon, sum(num) as first_year_cnt
+    from resume_info
+    where date like '2025%'
+    group by job,first_year_mon
+),
+
+# t2选出2026年的数据
+t2 as (
+    select job, date_format(date,'%Y-%m') as second_year_mon, sum(num) as second_year_cnt
+    from resume_info
+    where date like '2026%'
+    group by job,second_year_mon
+)
+
+#主查询：将t1和t2连接，通过job以及month连接
+select t1.job,t1.first_year_mon,t1.first_year_cnt,t2.second_year_mon,t2.second_year_cnt
+from t1 join t2 
+on t1.job=t2.job and right(t1.first_year_mon,2)=right(t2.second_year_mon,2)
+order by first_year_mon desc,t1.job desc
 ```

@@ -201,6 +201,7 @@ eg: `drwxr-xr-x`表示权限数字为755，其中第一个字符d表示是目录
 - `chmod`命令：修改权限，如`chmod 755 test.txt`表示将test.txt文件的权限修改为755
   - `chmod -r` 对文件夹内全部内容应用相同操作
   - `chmod u=rwx,g=rx,o=rx test.txt`表示将test.txt文件的权限修改为755, u表示user，g表示所属组，o表示其他用户
+  - `chmod +x test.txt`表示给test.txt文件的所属用户添加可执行权限，这个命令常用于创建一个需要执行的文件后给与其可执行权限
 - `chown`命令：修改所属用户,需要root用户权限
     - `chown user1 test.txt`表示将test.txt文件的所属用户修改为user1
     - `chown user1:group1 test.txt`表示将test.txt文件的所属用户和所属组修改为group1
@@ -562,4 +563,35 @@ sudo ln -s /usr/share/zoneinfo/Asia/Shanghai /etc/localtime 创建软链接将�
 
 #### 2. AWS
 一般使用AWS EC2(Elastic Compute Cloud)创建云服务器，AWS EC2是一种弹性计算服务.\
-关于EC2的创建在AWS tips Module 6 Compute 中有详细介绍。
+关于EC2的创建在AWS tips Module 6 Compute 中有详细介绍 。
+
+**EC2创建**
+1. 选择操作系统，选择Amazon Linux 2 AMI (HVM), SSD Volume Type
+2. 选择实例类型，选择t2.micro
+3. 创建key pair，选择创建新的key pair，输入名称，然后下载密钥对文件(.ppk)，妥善保存该文件
+4. Network Settings-->选择vpc为‘Work VPC’
+   - 配置Firewall:创建security groups；注意配置inbound rules；outbound一般默认即可
+   ![img_25.png](img_25.png)
+5. 可以在advanced details--user data中添加脚本，脚本的内容可以用于配置云服务器，如配置JDK环境，配置SSH免密登录等。
+比如：
+```
+#!/bin/bash  # 这是脚本的 shebang 行，它告诉系统这个脚本应该用 /bin/bash 解释器执行。
+yum -y install httpd # 使用 YUM 包管理器自动（无需确认）安装 Apache HTTP 服务器。
+systemctl enable httpd # 使 httpd 服务在系统启动时自动启动。
+systemctl start httpd # 启动 httpd 服务。
+echo '<html><h1>Hello from our Server!</h1></html>' > /var/www/html/index.html
+# 将一些 HTML 内容写入 /var/www/html/index.html 文件，以便在浏览器中访问。
+```
+
+**SSH连接EC2**
+![img_27.png](img_27.png)
+
+putty连接：
+host name：ec2-user@'Public DNS (IPv4)'\
+比如此时我的host name应该为：`ec2-user@ec2-3-94-31-222.compute-1.amazonaws.com`
+
+finalshell连接：
+![img_28.png](img_28.png)
+主机名：public DNS (IPv4)\
+用户名：ec2-user\
+认证：可以用ppk或pem文件的key pair

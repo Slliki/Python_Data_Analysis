@@ -1,5 +1,8 @@
-# Hadoop and Hive
-# 1. Hadoop
+# <big>Hadoop and Hive</big>
+
+# <big>PART 1: Hadoop</big>
+
+# 1. HDFS
 ## 1. HDFS的部署(本地虚拟机)<big>
 1. 首先，通过克隆得到的三个虚拟机node1，2，3，分别作为三个节点，其中node1作为主节点，node2，3作为从节点。\
 主节点:内存为4gb，配置为NameNode，SecondaryNameNode， DataNode
@@ -185,9 +188,77 @@ ps：云服务器如何保存服务器状态？\
 `tar -zcvf hadoop-ok.tar.gz hadoop-3.3.4`\ 
 该命令表示将已经配置好的hadoop-3.3.4文件压缩未hadoop-ok文件进行保存，当出现意外时直接解压该文件，重新配置主机名映射即可完成hadoop的部署</big>
 
+### AWS EMR
+AWS EMR是亚马逊云上的Hadoop集群，可以直接使用，不需要自己配置，但是需要收费。
+下面是配置EMR的步骤：（可以看lsde-workshop-wk9）
+1. 登录AWS，选择EMR服务
+2. 创建集群create cluster
+3. 选择软件配置，选择Hadoop，Hive，Spark，Pig，Hue，HBase，ZooKeeper，Ganglia，Zeppelin
+![img_26.png](img_26.png)
+4. 选择硬件配置，选择实例类型，实例数量，实例配置
+5. 设置key pair，用于ssh连接
+6. 集群配置：配置primary instance和core instance
+
+主节点（Primary instances）：\
+主节点负责协调集群的运行，管理 Hadoop 服务和分布式数据处理任务。
+它运行软件组件，例如 YARN 的资源管理器，以及 Hadoop 的 NameNode 和 JobTracker 服务。
+主节点也运行 Web 接口，如 Hadoop 的 ResourceManager 和 NameNode 的 Web UI，让您可以查看集群的状态和性能。
+在一个小型或测试环境中，主节点也可以充当核心和任务节点的角色，但在生产环境中通常不这样做，以确保稳定性。
+
+核心节点（Core instances）：\
+核心节点存储 Hadoop 文件系统（HDFS）上的数据，并处理数据计算任务。
+它们运行数据节点服务，存储数据并允许数据在集群内部移动。
+核心节点对于集群的数据持久性和稳定性至关重要，因为它们负责维护和处理存储在 HDFS 上的数据。
+任务节点（Task instances）（虽然在您的截图中未提到，但通常与核心节点一起讨论）：
+
+在配置 EMR 集群时，主节点始终只有一个，而核心节点和任务节点可以有多个，
+具体数量取决于您的计算和存储需求。通常建议使用多个核心节点以提高数据的冗余和可靠性。
+如果勾选了“Use multiple primary nodes”选项，EMR 将配置多个主节点以增加集群的可用性，
+但这通常用于更高级的配置和具有特定可用性需求的应用场景。
+
+完成cluster的创建后，可以得到一个包含指定个node的cluster，每个node都为EC2实例，
+可以通过ec2页面查看。
+
+eg：下面是一个用EMR集群运行wordcount的例子：
+首先在根目录创建一个文件夹，将下载好的txt文件（即需要进行wordcount的内容）放入；\
+然后将该文件夹通过`hdfs dfs -put`命令上传到hdfs的指定目录下；\
+然后在主节点运行mapper.py和reducer.py文件，将结果输出到hdfs的指定目录下；\
+```
+# 注意：下面所有code应该写在同一行内
+hadoop jar /export/server/hadoop-3.3.4/share/hadoop/tools/sources/hadoop-streaming-3.3.4-sources.jar 
+-files mapper.py,reducer.py 
+-mapper mapper.py 
+-reducer reducer.py 
+-input books-input 
+-output books-output
+```
+- hadoop jar ...表示启动流式处理的jar包；可以用find先找到该jar包的位置
+- -files 该参数表示告诉hadoop执行任务时需要用到的文件
+- -mapper和-reducer指定了map和reduce阶段各自的执行文件
+- -input和-output指定了输入和输出的文件夹
+
+下面时mapreduce过程：
+
+![img_30.png](img_30.png)
+
+执行完上述命令后，可以在hdfs的指定目录下查看结果文件：
+
+![img_32.png](img_32.png)
+![img_31.png](img_31.png)
+
+books-output为结果文件，part-00000为结果文件的内容，此时该文件仍在hdfs上，需要下载到本地查看结果：
+```
+hdfs dfs -get books-output
+``` 
+该命令将hdfs上的books-output文件夹下载到本地（当前文件夹），此时可以在本地查看结果文件：
+
+![img_33.png](img_33.png)
+
+
 ## 3. HDFS基本操作
 ### 1. HDFS集群启停操作<big>
-一键启动/关闭只用在node1就可以启动/关闭所有集群
+一键启动/关闭只用在node1就可以启动/关闭所有集群\
+root用户无法启动，需要切换到hadoop用户，然后执行以下命令：
 - 一键启动：`$HADOOP_HOME/sbin/start-dfs.sh`
 - 一键关闭：`$HADOOP_HOME/sbin/stop-dfs.sh`
 
@@ -200,6 +271,11 @@ ps：云服务器如何保存服务器状态？\
 ### 2. HDFS文件系统
 #### 1.HDFS文件系统构成
 同Linux一样，HDFS文件系统也以‘/’作为根目录的组织形式存在；有时需要区分linux和hdfs文件路径：
+
+查看hdfs文件系统的**根目录**：`hdfs dfs -ls /`
+
+HDFS的命令行接口不提供类似于 Unix/Linux 中的 cd（更改当前目录）命令。
+在 HDFS 中，您不能更改“当前工作目录”，因为每个操作都需要使用绝对路径或相对于您的 HDFS 根目录的路径来指定文件或目录的位置。
 
 ![](.Hadoop&Hive_images/2cd3aaff.png)
 
@@ -227,6 +303,7 @@ Hadoop提供了两套命令体系：
   - -f表示强制覆盖
   - -ignorecrc表示忽略crc校验
   - -crc表示生成crc校验文件
+  - 默认下载路径为：linux系统的当前目录
   - eg：`hdfs dfs -get -f /test.txt .` '.' 表示linux系统的当前目录
 - `-cp [-f]  <src> ... <dst>`:拷贝hdfs文件
   - -f表示强制覆盖
@@ -279,3 +356,216 @@ hdfs dfs chown [-R] [OWNER][:[GROUP]] PATH
 #修改文件权限：(777表示权限模式)
 hdfs dfs chmod [-R] 777 /xxx.txt
 ```
+
+#### *5. 使用pycharm插件Big Data Tools连接HDFS
+1. 在pycharm中安装Big Data Tools插件
+2. 配置Windows环境变量：HADOOP_HOME，PATH
+3. 使用Big Data Tools连接HDFS，可以选取用url或者hadoop配置文件连接
+
+连接好后可以使用该插件进行文件的上传下载等操作，也可以直接在pycharm中进行代码的编写，运行等操作。\
+在 PyCharm 中使用 Big Data Tools 插件查看 HDFS 上的 Python 文件时，通常不能直接在 PyCharm 中运行这些文件，因为它们位于远程的 Hadoop 分布式文件系统上。\
+PyCharm 主要是作为本地开发环境使用，而 HDFS 是为存储和处理大量分布式数据而设计的系统。\
+要运行存储在 HDFS 上的 Python 脚本，你通常需要使用 Hadoop 生态系统中的其他工具，\
+例如 Apache Spark 或 Apache Hadoop Streaming。\
+这些工具允许你在 Hadoop 集群上执行 Python 代码， 处理存储在 HDFS 上的数据。
+
+#### 6. HDFS文件储存原理
+
+HDFS文件系统是一个分布式文件系统，文件被分成多个块，每个块被复制到多个节点上，
+每个块的大小默认为128M，这样的特性决定了hdfs文件系统无法直接修改文件内容，
+只能通过追加的方式修改文件内容，或者删除文件后从Linux本地上传新文件。
+
+通过多个副本的方式保证了数据的安全性，每个副本都复制到不同的节点上，当某个节点出现故障时，
+可以从其他节点上获取数据，保证了数据的可靠性。
+
+1. 副本块数量配置\
+可以在hdfs-site.xml中配置如下属性,value为副本块数量\
+如果需要自定义这个属性，请修改每一台服务器的hdfs-site.xml文件，并设置此属性
+```
+<property>
+  <name>dfs.replication</name>
+  <value>3</value>
+</property>
+```
+
+- 除了配置文件外，我们还可以在上传文件的时候，临时决定被上传文件以多少个副本存储。\
+`hadoop fs -D dfs.replication=2 -put test.txt /tmp/`\
+使用-put命令时添加参数dfs.replication，就可以在上传文件的时候，临时设置其副本数为2
+
+- 对于已经存在HDFS的文件，修改dfs.replication属性不会生效，如果要修改已存在文件可以通过命令\
+`hadoop fs -setrep [-R] 2 path`\
+如上命令，指定path的内容将会被修改为2个副本存储。\
+-R选项可选，使用-R表示对子目录也生效。
+
+2. fsck命令\
+fsck命令用于检查HDFS文件系统的状态，包括文件的副本数量，文件块的大小等信息。
+```
+hdfs fsck path [-files [-blocks [-locations]]]
+
+# fsck可以检查指定路径是否正常
+-files可以列出路径内的文件状态
+-files -blocks  输出文件块报告（有几个块，多少副本）
+-files -blocks -locations 输出每一个block的详情
+
+eg: hdfs fsck /itcast/words.txt -files -blocks -locations
+该命令表示检查/itcast/words.txt文件的状态，同时列出文件的块报告和每一个块的详情
+```
+
+3. 块大小的配置\
+块大小的配置在hdfs-site.xml中，value为块大小，单位为字节\
+如果需要自定义这个属性，请修改每一台服务器的hdfs-site.xml文件，并设置此属性
+```
+<property>
+  <name>dfs.blocksize</name>
+  <value>268435456</value>
+</property>
+```
+上面配置块大小为256M，如果要修改已存在文件的块大小，可以通过命令：
+```
+hadoop fs -D dfs.blocksize=134217728 -put test.txt /tmp/
+```
+
+4. NameNode对块的管理\
+- NameNode基于edits log和fsimage两个文件来管理块的信息，edits log文件记录了NameNode的所有操作，
+而fsimage文件记录了NameNode的元数据信息，包括文件的副本数量，文件的块大小等信息。
+- 存在多个edits文件保证不会有某个edits文件过大，导致读取效率低下。\
+将全部edits文件合并成，即可得到一个fsimage文件。
+
+![](.Hadoop&Hive_images/0bd14671.png)
+
+对于元数据的合并，是一个定时过程，基于：
+- dfs.namenode.checkpoint.period，默认3600（秒）即1小时
+- dfs.namenode.checkpoint.txns，默认1000000，即100W次事务
+
+只要有一个达到条件就执行。\
+检查是否达到条件，默认60秒检查一次，基于：
+- dfs.namenode.checkpoint.check.period，默认60（秒）
+
+5. SecondaryNameNode的作用\
+SecondaryNameNode会通过http从NameNode拉取数据（edits和fsimage）
+然后合并完成后提供给NameNode使用。
+
+### 3. HDFS文件系统的读写原理
+#### 1. 数据写入
+
+![](.Hadoop&Hive_images/4f65ce06.png)
+
+- **NameNode不负责数据写入**，只负责元数据记录和权限审批
+- 客户端直接向**1台DataNode**写数据，这个DataNode一般是离客户端最近（网络距离）的那一个
+- 数据块副本的复制工作，由DataNode之间自行完成（构建一个PipLine，按顺序复制分发，如图1给2, 2给3和4）
+
+#### 2. 数据读取
+
+![](.Hadoop&Hive_images/cb40dfa3.png)
+
+总结：不论读写，NameNode都不参与，只负责元数据记录和权限审批。\
+对于读写流程，简单概括为：
+- NameNode做授权判断（是否能写、是否能读）
+- 客户端直连DataNode进行写入（由DataNode自己完成副本复制）、客户端直连DataNode进行block读取
+  - 写入，客户端会被分配找离自己最近的DataNode写数据
+  - 读取，客户端拿到的block列表，会是网络距离最近的一份
+
+# 2. Mapreduce & Yarn
+
+
+
+### 项目实例1：wordcount
+step 1:准备需要count的txt文件数据，这里使用从一个网站直接下载。\
+在node1：`/export/server/wordcount`下创建books-input文件夹，vim创建download_books.sh文件，写入以下内容：
+```
+#!/bin/bash
+# 下载数据
+for i in {1000..1100}
+do
+    wget 'http://www.gutenberg.org/files/$i/$i-0.txt'
+done
+```
+使用chmod命令使该文件可执行\
+在books-input文件夹下执行`./download_books.sh`，下载数据
+
+step 2: 编写mapper.py和reducer.py文件：
+```
+# mapper.py
+#!/usr/bin/env python
+import sys
+import string
+for line in sys.stdin:
+  line = line.strip()
+  words = line.split()
+  for w in words:
+    table = w.maketrans('', '', string.punctuation)
+    w = w.translate(table).lower()
+    print(w, '\t', 1)
+```
+```
+# reducer.py
+#!/usr/bin/env python3
+from collections import defaultdict
+import sys
+word_count = defaultdict(int)
+for line in sys.stdin:
+  try:
+    line = line.strip()
+    word_then_count = line.split()
+    word_count[word_then_count[0]] += int(word_then_count[1])
+  except:
+    continue
+for word, count in word_count.items():
+  print(word, count)
+```
+同样需要使用chmod命令使这两个文件可执行\
+可以通过下面命令查看mapper是否正常运行：
+```
+printf 'I love Hadoop\n Do you love Hadoop?' | ./mapper.py
+```
+可以通过下面命令查看reducer是否正常运行：
+```
+printf 'I love Hadoop\n Do you love Hadoop?' | ./mapper.py | sort -k1,1 | ./reducer.py
+```
+
+
+step 3: 将books-input文件夹上传到hdfs的指定目录下：
+```
+# 在hdfs的根目录`/`下创建wordcount文件夹，其中创建文件夹books-input；
+# 将本地books-input中的所有txt文件上传到hdfs的/wordcount/books-input文件夹下
+
+hdfs dfs -mkdir /wordcount/books-input
+hdfs dfs -put books-input/**.txt /wordcount/books-input
+```
+step 4：找到hadoop-streaming-3.3.4-sources.jar的位置：
+```
+find / -name hadoop-streaming-3.3.4-sources.jar
+```
+该文件在/export/server/hadoop-3.3.4/share/hadoop/tools/lib/hadoop-streaming-3.3.4.jar
+
+
+step 5：执行mapreduce任务：
+```shell
+# 注意：下面所有code应该写在同一行内
+hadoop jar /export/server/hadoop-3.3.4/share/hadoop/tools/lib/hadoop-streaming-3.3.4.jar 
+-files mapper.py,reducer.py 
+-mapper mapper.py 
+-reducer reducer.py 
+-input /wordcount/books-input 
+-output books-output
+```
+- hadoop jar ...表示启动流式处理的jar包；可以用find先找到该jar包的位置
+- -files 该参数表示告诉hadoop执行任务时需要用到的文件
+- -mapper和-reducer指定了map和reduce阶段各自的执行文件
+- -input和-output指定了输入和输出的文件夹
+  - input的路径必须提前在hdfs建立；output的路径不能提前存在，否则会报错。
+
+step 6：查看结果文件：
+通过get命令将hdfs的输出结果文件夹books-output下载到本地，然后查看结果文件：
+```
+hdfs dfs -get books-output
+```
+books-output中有一个part-00000文件，即为结果文件，可以通过cat或more命令查看结果：
+
+注意：有时候可能不止一个part文件(part-00000,part-00001...)，这是因为hadoop会将结果文件分成多个part文件，
+可以通过getmerge命令将多个part文件合并成一个文件：
+```
+hdfs dfs -getmerge books-output/part-* ../wordcount/books-output.txt
+```
+getmerge命令只是进行concatenated，即没有进行排序；\
+如果需要fully ordered，可能要使用其他MapReduce流程

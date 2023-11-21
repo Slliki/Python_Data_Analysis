@@ -101,27 +101,102 @@ Hadoop的架构：中心和主从架构，主节点NameNode作为Master负责管
 ## 2. Spark
 1. Spark是一个分布式计算框架，可以进行批处理，也可以进行实时计算，而且效率比MapReduce高很多。
 2. spark基于内存计算，提高了大数据处理的实时性，保证高容错性和高伸缩性。
-3. spark的核心是RDD(弹性分布式数据集)，是一个抽象的数据集，可以对其进行各种操作，包括map，reduce，join等，这些操作都是在内存中进行的，所以效率很高。
+3. spark的核心是RDD(Resilient Distributed Datasets 弹性分布式数据集)，是一个抽象的数据集，可以对其进行各种操作，包括map，reduce，join等，这些操作都是在内存中进行的，所以效率很高。
 4. spark的运行模式有两种：local模式和cluster模式
     - local模式：在本地运行，不需要启动集群
     - cluster模式：在集群上运行，需要启动集群
 5. spark使用函数式编程，将数据集合转换成流(stream)，每个元素一次经过需要的函数，最后得到结果。时间复杂度为O(n)，空间复杂度为O(1)。\
 相比面向对象的编程，函数式编程更加简洁，更加高效，更加容易实现并行计算。
-6. 引入惰性计算机制，只有当需要输出结果时，才会进行计算，这样可以减少不必要的计算，提高效率。
+6. 引入惰性计算机制( _lazy_ )，只有当需要输出结果时，才会进行计算，这样可以减少不必要的计算，提高效率。
 7. _**spark streaming**_: Apache Spark生态系统的一个组件，用于处理**实时数据流**。它允许你从各种数据源（如Kafka、Flume、HDFS、Socket等）实时获取数据，并进行高吞吐量的处理和分析。Spark Streaming提供了一种微批处理的模型，它将实时数据切分成小的批次，然后对每个批次应用Spark的批处理引擎。
 8. 流计算（Stream Processing）: 是一种用于处理实时数据流的计算模型，它允许数据在进入系统时立即进行处理和分析，而不需要等待数据存储在批处理或离线存储中。流计算通常用于实时监控、实时分析、实时决策和事件驱动应用程序中。
+9. Fault Tolerance: Spark的容错性来源于lineage，即RDD之间的依赖关系，当某个RDD丢失时，
+可以通过lineage重新计算得到。为了恢复可能丢失的数据，
+Spark 选择记录一系列的转换操作来构建 RDD 的血统，而不是通过成本较高的数据复制或检查点（checkpointing）。
+
+
+
+**map和reduce：**
+- map:用于将输入的数据切分为若干个小数据，然后将小数据分发到各个机器上进行计算，
+- reduce:用于将map的输出结果进行合并，得到最终的结果。
+
+Apache Spark 的核心概念之一是对弹性分布式数据集（RDD）进行操作，
+这些操作主要分为两类：转换（Transformations）和动作（Actions）。
+
+
+### Transformations
+转换是一种延迟执行的操作，用于创建新的 RDD。当你在一个 RDD 上应用转换操作时，
+它不会立即执行计算。相反，Spark 会记住应用了哪些转换，并只在需要时（即在执行动作操作时）计算结果。
+这种设计方式被称为惰性求值（lazy evaluation）。
+
+- map(func)：对每个元素应用func函数
+- filter(func)：对每个元素应用func函数，返回值为true的元素
+- flatMap(func)：与map类似，但是每个输入元素可以映射到0或多个输出元素，最终将结果“扁平化”输出
+- sample(withReplacement, fraction, seed)：对数据进行采样,withReplacement表示是否放回，fraction表示采样比例，seed表示随机种子
+- union(otherDataset)：返回一个新的数据集，由原数据集和otherDataset联合而成
+- join(otherDataset, [numTasks])：对两个数据集进行内连接
+- intersection(otherDataset)：返回两个数据集的交集
+- cartesian(otherDataset)：返回两个数据集的笛卡尔积
+- distinct([numTasks]))：返回一个新的数据集，由原数据集去重后得到, numTasks表示并行度
+- groupByKey([numTasks])：对数据集进行分组，numTasks表示并行度
+- reduceByKey(func, [numTasks])：对数据集进行分组后，对每个组应用reduce函数进行计算，numTasks表示并行度
+- cogroup(otherDataset, [numTasks])：对两个数据集进行分组.
+- sortByKey([ascending], [numTasks])：对数据集进行排序，ascending表示是否升序
+
+### Actions
+动作操作在 RDD 上触发实际的计算并返回结果。当你执行动作操作时，
+Spark 会开始处理之前通过转换操作建立的 RDD 转换流水线。
+
+- reduce(func)：对数据集中的元素应用func函数进行计算
+- collect()：将数据集中的元素以数组array的形式返回到Driver端,常用于filter后的结果转换
+- count()：返回数据集中元素的个数
+- first()：返回数据集中的第一个元素
+- take(n)：返回数据集中的前n个元素
+- takeSample(withReplacement, num, [seed])：从数据集中随机采样num个元素
+- saveAsTextFile(path)：将数据集中的元素以textfile的格式保存到HDFS文件系统或者其他支持的文件系统
+- saveAsSequenceFile(path)：将数据集中的元素以SequenceFile的格式保存到HDFS文件系统或者其他支持的文件系统
+    - SequenceFile是Hadoop用来存储二进制形式的key-value对的文件格式，它是一个二进制文件，可以存储任意类型的key-value对，而不仅仅是文本类型。
+- countByKey()：统计每个key的个数,仅适用于(K,V)类型的RDD
+- foreach(func)：对数据集中的每个元素应用func函数进行计算，一般用于更新累加器或者与外部存储系统交互
+
+当你需要定义 RDD 的转换逻辑，但不需要立即计算结果时，使用 transformation。\
+当你需要触发实际的计算并获取结果时，使用 action。
+
+例如，在开发过程中，你可能会使用多个转换操作来指定如何从原始数据中提取、过滤和转换数据。
+然后，最终你可能会使用一个动作操作，如 `collect` 来查看结果，或者 `saveAsTextFile` 来将结果保存到文件系统中。
+
 
 ## 3. Flink
 1. Flink是一个分布式流处理框架，采用真正的流处理模型。
 2. Flink的核心是DataStream，是一个抽象的数据集，可以对其进行各种操作，包括map，reduce，join等，这些操作都是在内存中进行的，所以效率很高。
 3. Flink可以与多个数据源集成，包括Kafka、HDFS、Kinesis等。
 
-## 4. Kafka
-Kafka 是一个分布式的流处理平台和**消息队列系统**，最初由LinkedIn开发，并作为Apache项目开源。
-它被设计用于高吞吐量、可扩展性和容错性，用于处理和存储实时数据流，
-通常用于日志收集、事件流处理、监控、报警和大规模数据流处理等场景
+## 4. Kafka & Zookeeper
 
+Kafka和Zookeeper是两个经常在分布式系统和大数据生态系统中一起使用的开源技术。
 
+**Apache Kafka**:
+- Kafka是一个分布式流处理平台，主要用于构建实时数据管道和流应用程序。它是一个分布式发布-订阅消息系统，允许你以高吞吐量和可扩展的方式来处理流数据。
+- Kafka的核心构成包括：生产者（Producers）、消费者（Consumers）、代理节点（Brokers）、主题（Topics）和分区（Partitions）。
+- 生产者向主题发布消息，消费者从主题订阅消息，而代理节点负责存储消息并为生产者和消费者之间的消息传输提供服务。
+- Kafka支持水平扩展，可以通过增加更多的代理节点来提升整体的吞吐量。
+- Kafka也支持消息持久化，允许存储大量的消息并保证消息不会丢失。
+
+**Apache Zookeeper**:
+- Zookeeper是一个分布式的协调服务，为分布式应用提供一致性和协调机制。
+- 它常用于管理分布式系统中的元数据、提供分布式锁、维护节点状态等。
+- Zookeeper以树状的目录结构（称为Znodes）来保存数据，客户端可以在这些节点上进行读写操作，并能设置观察者（Watchers）来监听数据变更。
+- 在Kafka中，Zookeeper用于管理集群元数据、维护消费者的偏移量（尽管最新版本的Kafka已经可以不依赖于Zookeeper来处理这些事务）以及选举Broker中的领导者。
+
+Kafka依赖Zookeeper来进行集群管理和协调工作。虽然Kafka正在向去Zookeeper化的方向发展（如KIP-500提案所述），但在很多现存的Kafka版本中，Zookeeper仍然是必不可少的组件。
+
+**它们如何协同工作**:
+- 当Kafka集群启动时，它会连接到Zookeeper集群来注册其自身和Broker节点。
+- Zookeeper负责管理Broker之间的状态，并在Broker发生故障时帮助进行领导者选举。
+- 消费者使用Zookeeper来协调和同步它们对分区的读取偏移量（尽管现代Kafka允许这些偏移量被存储在Kafka本身中）。
+- 分布式锁和配置信息也可以由Zookeeper来管理。
+
+简而言之，Kafka为消息传输和流处理提供了一个高性能的平台，而Zookeeper提供了协调和元数据管理的机制来支持Kafka的稳定和高效运作。
 
 ## 5.  _**Hive**_
 Hive是一个基于Hadoop的数据仓库工具软件，可以将结构化的数据文件映射为一张数据库表，并提供简单的sql查询功能，可以将sql语句转换为MapReduce任务进行运行。
