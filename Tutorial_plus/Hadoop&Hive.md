@@ -503,9 +503,249 @@ Yarn中的资源分配和调度都是基于容器（container）的，每个容�
 - node3：NodeManager
 
 ### 1. MapReduce的配置
+在`$HADOOP_HOME/etc/hadoop`目录下，修改配置文件：
+
+1.mapred-env.sh
+```
+#设置jdk路径
+export JAVA_HOME=/export/server/jdk
+
+#设置JobHistoryServer的进程内存为1G
+export HADOOP_JOB_HISTORYSERVER_HEAPSIZE=1024
+
+#设置日志级别为INFO，表示只用info或者更高级别的日志信息会被记录；
+#如果设置为DEBUG，则会记录所有级别的日志信息，包括DEBUG、INFO、WARN、ERROR、FATAL
+#RFA是输出方式，通常代表 RollingFileAppender，意
+#味着日志将被输出到文件中，并且文件可以在达到特定大小后滚动。
+export HADOOP_ROOT_LOGGER=INFO,RFA
+```
+
+2.mapred-site.xml
+```xml
+<configuration>
+<property>
+    <name>mapreduce.framework.name</name>
+    <value>yarn</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>mapreduce.jobhistory.address</name>
+    <value>node1:10020</value>
+    <description></description>
+  </property>
+
+
+  <property>
+    <name>mapreduce.jobhistory.webapp.address</name>
+    <value>node1:19888</value>
+    <description></description>
+  </property>
+
+
+  <property>
+    <name>mapreduce.jobhistory.intermediate-done-dir</name>
+    <value>/data/mr-history/tmp</value>
+    <description></description>
+  </property>
+
+
+  <property>
+    <name>mapreduce.jobhistory.done-dir</name>
+    <value>/data/mr-history/done</value>
+    <description></description>
+  </property>
+<property>
+  <name>yarn.app.mapreduce.am.env</name>
+  <value>HADOOP_MAPRED_HOME=$HADOOP_HOME</value>
+</property>
+<property>
+  <name>mapreduce.map.env</name>
+  <value>HADOOP_MAPRED_HOME=$HADOOP_HOME</value>
+</property>
+<property>
+  <name>mapreduce.reduce.env</name>
+  <value>HADOOP_MAPRED_HOME=$HADOOP_HOME</value>
+</property>
+  
+</configuration>
+```
+
+### 2. Yarn的配置
+1.yarn-env.sh
+```shell
+#设置jdk路径
+export JAVA_HOME=/export/server/jdk
+#设置HADOOP_HOME的环境变量
+export HADOOP_HOME=/export/server/hadoop
+#设置HADOOP_CONF_DIR的环境变量
+export HADOOP_CONF_DIR=$HADOOP_HOME/etc/hadoop
+#设置日志文件的环境变量
+export HADOOP_LOG_DIR=$HADOOP_HOME/logs
+```
+
+2.yarn-site.xml
+```xml
+<configuration>
+
+<!-- Site specific YARN configuration properties -->
+<property>
+    <name>yarn.log.server.url</name>
+    <value>http://node1:19888/jobhistory/logs</value>
+    <description></description>
+</property>
+
+  <property>
+    <name>yarn.web-proxy.address</name>
+    <value>node1:8089</value>
+    <description>proxy server hostname and port</description>
+  </property>
+
+
+  <property>
+    <name>yarn.log-aggregation-enable</name>
+    <value>true</value>
+    <description>Configuration to enable or disable log aggregation</description>
+  </property>
+
+  <property>
+    <name>yarn.nodemanager.remote-app-log-dir</name>
+    <value>/tmp/logs</value>
+    <description>Configuration to enable or disable log aggregation</description>
+  </property>
+
+
+<!-- Site specific YARN configuration properties -->
+  <property>
+    <name>yarn.resourcemanager.hostname</name>
+    <value>node1</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>yarn.resourcemanager.scheduler.class</name>
+    <value>org.apache.hadoop.yarn.server.resourcemanager.scheduler.fair.FairScheduler</value>
+    <description></description>
+  </property>
+
+  <property>
+    <name>yarn.nodemanager.local-dirs</name>
+    <value>/data/nm-local</value>
+    <description>Comma-separated list of paths on the local filesystem where intermediate data is written.</description>
+  </property>
+
+
+  <property>
+    <name>yarn.nodemanager.log-dirs</name>
+    <value>/data/nm-log</value>
+    <description>Comma-separated list of paths on the local filesystem where logs are written.</description>
+  </property>
+
+
+  <property>
+    <name>yarn.nodemanager.log.retain-seconds</name>
+    <value>10800</value>
+    <description>Default time (in seconds) to retain log files on the NodeManager Only applicable if log-aggregation is disabled.</description>
+  </property>
 
 
 
+  <property>
+    <name>yarn.nodemanager.aux-services</name>
+    <value>mapreduce_shuffle</value>
+    <description>Shuffle service that needs to be set for Map Reduce applications.</description>
+  </property>
+</configuration>
+```
+
+在设置好配置文件后，需要分发到其他节点：
+```shell
+#在node1上执行
+scp mapred-env.sh mapred-site.xml yarn-env.sh yarn-site.xml node2:/export/server/hadoop/etc/hadoop
+scp mapred-env.sh mapred-site.xml yarn-env.sh yarn-site.xml node3:/export/server/hadoop/etc/hadoop
+
+#或者使用当前目录`pwd`/作为目标路径
+#需要保证此时在node1的/export/server/hadoop/etc/hadoop目录下
+scp mapred-env.sh mapred-site.xml yarn-env.sh yarn-site.xml node2:`pwd`/
+scp mapred-env.sh mapred-site.xml yarn-env.sh yarn-site.xml node3:`pwd`/
+```
+## 4. Yarn的启动
+
+```shell
+#一键启动/关闭yarn集群
+start/stop-yarn.sh 
+#控制单独节点某个进程启动/关闭
+yarn --daemon start|stop resourcemanager|nodemanager|proxyserver
+
+
+#控制单独节点JobHistoryServer进程启动/关闭
+--daemon start/stop historyserver
+```
+查看Web UI界面：
+- ResourceManager：http://node1:8088
+
+![](.Hadoop&Hive_images/3e1b1055.png)
+
+## 5. 提交MapReduce任务到Yarn运行
+Yarn本身作为资源调度框架，不负责任务的运行，但会提供资源供许多程序运行，如：\
+MapReduce、Spark、Hive、HBase等，这些程序都可以运行在Yarn上。
+
+### MapReduce示例程序
+Hadoop官方内置了一些预设的MapReduce任务，可以直接使用，\
+如：wordcount(单词计数)、grep(查找)、sort(排序),pi(蒙特卡洛法圆周率计算)等。\
+这些内置的示例MapReduce代码程序位于`$HADOOP_HOME/share/hadoop/mapreduce/hadoop-mapreduce-examples-3.3.4.jar`\
+
+可以通过`hadoop jar`命令提交MapReduce任务，命令格式如下：
+```shell
+hadoop jar jar包路径 [main类] [参数]
+```
+#### wordcount 示例
+功能：给定数据输入路径（HDFS路径），给定结果输出路径（HDFS路径），\
+统计输入路径下所有文件中的单词出现次数，将结果输出到输出路径下。
+
+可以使用之前的books-input文件夹作为输入路径，将结果输出到books-output2文件夹下：
+```shell
+hadoop jar $HADOOP_HOME/share/hadoop/mapreduce/hadoop-mapreduce-examples-3.3.4.jar \
+wordcount hdfs://node1:8020/wordcount/books-input hdfs://node1:8020/wordcount/books-output2
+```
+- 参数1：`wordcount` 表示使用内置的wordcount程序
+- 参数2：`hdfs://node1:8020/wordcount/books-input` 表示输入路径
+- 参数3：`hdfs://node1:8020/wordcount/books-output2` 表示输出路径，必须保证输出文件夹原本是不存在的
+
+执行完上述命令后，可以在Web UI界面查看任务运行情况.
+
+![](.Hadoop&Hive_images/62174f08.png)
+![](.Hadoop&Hive_images/f5dc9afc.png)
+
+#### PI 示例
+功能：给定一个参数N，N为圆内随机点的个数，计算圆周率的近似值。
+
+Monte Carlo方法：\
+假设有一个半径为1的圆，以及一个边长为2的正方形，正方形的中心与圆的中心重合，\
+则正方形的四个顶点分别为(1,1)、(1,-1)、(-1,1)、(-1,-1)。\
+在正方形内部随机产生N个点，落在圆内的点的个数为M，则有：\
+pi*1^2/2*2=M/N，即`pi=4*M/N`，这样就可以通过随机点的个数来近似计算圆周率。
+
+下面是一个python实现的蒙特卡洛法计算圆周率的程序：
+```python
+import random
+import sys
+from operator import add
+
+def inside(p):
+    x, y = random.random(), random.random()
+    return x*x + y*y < 1
+```
+
+
+```shell
+hadoop jar $HADOOP_HOME/share/hadoop/mapreduce/hadoop-mapreduce-examples-3.3.4.jar pi 10 1000
+```
+- 参数1：`pi` 表示使用内置的pi程序
+- 参数2：`10` 表示设置几个map task
+- 参数3：`1000` 表示随机点的个数
+
+![](.Hadoop&Hive_images/545f3973.png)
 
 
 ## MapReduce实例演示
