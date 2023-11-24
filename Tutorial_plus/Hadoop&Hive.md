@@ -465,10 +465,50 @@ SecondaryNameNode会通过http从NameNode拉取数据（edits和fsimage）
   - 写入，客户端会被分配找离自己最近的DataNode写数据
   - 读取，客户端拿到的block列表，会是网络距离最近的一份
 
-# 2. Mapreduce & Yarn
+# 2. Yarn
+## 1. Yarn的作用
+Yarn是一个资源调度平台，用于管理集群中的资源，为用户提交的应用程序分配资源。
+当上传map task和reduce task时，yarn会根据资源情况，为map task和reduce task分配资源。
+
+一般情况都需要Yarn才可以执行mapreduce任务。除非是本地模式，即仅在一个服务器上执行mapreduce任务。
+
+## 2. Yarn的架构
+### 1. 核心架构-ReourceManager+NodeManager
+1. 与HDFS类似，Yarn也使用master/slave架构，由一个master节点和多个slave节点组成。
+- master节点：ResourceManager，负责资源的调度和分配
+- slave节点：NodeManager，负责资源的管理和监控
+
+2. Yarn容器
+Yarn中的资源分配和调度都是基于容器（container）的，每个容器都有自己的内存和CPU资源，每个容器都是一个进程。
+
+由NodeManger先占用一定资源，再将这部分资源提供给程序运行，程序运行结束后，释放资源。
+
+### 2. 辅助架构-ProxysServer+JobHistoryServer
+1. Web ProxysServer
+- 用于代理ResourceManager和NodeManager的web页面，使得用户可以通过web页面访问Yarn集群
+- 通过web页面可以查看集群的资源使用情况，任务运行情况等
+- 通过web代理服务器可以减少被网络攻击的风险
+
+2. JobHistoryServer
+- 用于存储任务运行的历史信息，提供Web UI界面，可查看程序日志
+- 保存历史数据，随时查看历史运行程序信息
+
+## 3. MapReduce & Yarn的部署
+![img_36.png](img_36.png)
+![img_37.png](img_37.png)
+
+<big>集群规划如下(3台机器)：
+- node1：ResourceManager，NodeManager, JobHistoryServer，Web ProxysServer
+- node2：NodeManager
+- node3：NodeManager
+
+### 1. MapReduce的配置
 
 
 
+
+
+## MapReduce实例演示
 ### 项目实例1：wordcount
 step 1:准备需要count的txt文件数据，这里使用从一个网站直接下载。\
 在node1：`/export/server/wordcount`下创建books-input文件夹，vim创建download_books.sh文件，写入以下内容：

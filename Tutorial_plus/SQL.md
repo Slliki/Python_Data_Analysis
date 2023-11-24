@@ -20,6 +20,9 @@ SQL语句的执行顺序如下：
 - `group by`语句必须出现在`where`语句之后，`order by`语句之前。
 - `group by`语句中的列必须是`select`语句中出现的列，或者是聚合函数的参数。
 - `group by`语句中的列可以是`select`语句中出现的列的别名。但where语句中不能使用别名。
+
+当使用DISTINCT时，所有的ORDER BY中的列都必须在SELECT列表中出现。\
+而order by中的列不一定要在select中出现，但是必须是group by中的列或者是聚合函数的参数。
 </big>
 
 

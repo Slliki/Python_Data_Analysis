@@ -73,7 +73,21 @@ Hadoop的架构：中心和主从架构，主节点NameNode作为Master负责管
     - map: 将输入的数据切分为若干个小数据，然后将小数据分发到各个机器上进行计算
     - shuffle: 将map的输出结果按照key进行排序，然后将相同key的value进行合并
     - reduce: 将shuffle的结果进行合并，得到最终的结果
-  
+
+**map和reduce：**
+- map:用于将输入的数据切分为若干个小数据，然后将小数据分发到各个机器上进行计算，
+- shuffle:用于将map的输出结果按照key进行排序，然后将相同key的value进行合并，
+- reduce:用于将map的输出结果进行合并，得到最终的结果。
+
+虽然 Reduce 阶段的实际处理通常发生在所有 Map 任务完成之后，
+但数据的传输和排序（Shuffle 过程）可能在 Map 阶段还在进行时就已经开始。
+这有助于整个过程的效率，因为它减少了 Map 阶段完成和 Reduce 阶段开始之间的空闲时间。
+
+Map阶段的输出会被写入磁盘，然后reduce阶段进行读取；
+mapreduce的执行是一次性且有序的，每次map和reduce阶段直接不共享数据
+
+![img_35.png](img_35.png)
+
 ![](.Distributed_System_Concepts_images/4b3b0970cb5dfe37c10fef1194be539.png)
 
 优点： 不用传输数据，每次计算只需要将对应任务(算法)分发到数据所在的服务器上进行计算，然后将结果返回即可。\
@@ -114,11 +128,7 @@ Hadoop的架构：中心和主从架构，主节点NameNode作为Master负责管
 可以通过lineage重新计算得到。为了恢复可能丢失的数据，
 Spark 选择记录一系列的转换操作来构建 RDD 的血统，而不是通过成本较高的数据复制或检查点（checkpointing）。
 
-
-
-**map和reduce：**
-- map:用于将输入的数据切分为若干个小数据，然后将小数据分发到各个机器上进行计算，
-- reduce:用于将map的输出结果进行合并，得到最终的结果。
+   
 
 Apache Spark 的核心概念之一是对弹性分布式数据集（RDD）进行操作，
 这些操作主要分为两类：转换（Transformations）和动作（Actions）。
@@ -165,6 +175,8 @@ Spark 会开始处理之前通过转换操作建立的 RDD 转换流水线。
 例如，在开发过程中，你可能会使用多个转换操作来指定如何从原始数据中提取、过滤和转换数据。
 然后，最终你可能会使用一个动作操作，如 `collect` 来查看结果，或者 `saveAsTextFile` 来将结果保存到文件系统中。
 
+Transformation 和 Action 操作与Map和Reduce操作的区别：\
+Map操作会输出结果并存入磁盘,而Transformation操作不会输出结果，只是记录操作，只有Action操作才会输出结果
 
 ## 3. Flink
 1. Flink是一个分布式流处理框架，采用真正的流处理模型。
