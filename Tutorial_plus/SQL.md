@@ -207,7 +207,9 @@ from table
 - `day()`：返回日期的天数。
 - `hour()`：返回日期的小时数。
 - `DateDiff(date1, date2)`：返回两个日期之间的天数。
-- `DateAdd(date, interval, unit)`：返回日期加上指定时间间隔后的日期。
+- `DateAdd(date, interval unit)`：返回日期加上指定时间间隔后的日期。
+  - eg:`select DateAdd(col1,interval 1 day)` 该语句会返回表中col1列的日期加上一天后的日期
+- `DateSub(date, interval unit)`：返回日期减去指定时间间隔后的日期。
 - `DatePart(interval, date)`：返回日期的指定部分。
 - `Date_Format(date, format)`：返回日期的指定格式。
   - eg：`select Date_Format(col1, '%Y-%m-%d')` 该语句会返回表中col1列的日期，格式为YYYY-MM-DD
@@ -501,7 +503,46 @@ select
    ceiling((count(*)+1)/2) as end
 ```
 
-另一思路：当某一数的正序和逆序累计均大于整个序列的数字个数的一半即为中位数\
+##### row_number配合floor和ceiling找中位数位置
+
+![](.SQL_images/804260b5.png)
+
+使用row_number()进行排序，然后再筛选出中位数位置的行即可\
+当总行数为奇数时，(TotalCount + 1) / 2 将是中位数所在行；（此时floor和ceil的结果相同）\
+当总行数为偶数时，由于 FLOOR 和 CEIL 函数的作用，这将选择位于中间的两行。
+```mysql
+WITH RankedNumbers AS (
+    SELECT num,
+           ROW_NUMBER() OVER (ORDER BY num) AS RowNum,
+           COUNT(*) OVER () AS TotalCount
+    FROM Numbers
+)
+
+SELECT AVG(num) AS Median
+FROM RankedNumbers
+WHERE RowNum IN (FLOOR((TotalCount + 1) / 2.0), CEIL((TotalCount + 1) / 2.0));
+
+```
+或：
+```sql
+WITH t1 AS (
+    SELECT *,
+           ROW_NUMBER() OVER (ORDER BY num DESC) AS t_rank,
+           COUNT(*) OVER () AS total_count
+    FROM Number
+),
+t2 AS (
+    SELECT FLOOR((total_count + 1) / 2.0) AS start,
+           CEILING((total_count + 1) / 2.0) AS end
+    FROM t1
+    LIMIT 1 # 当不需要分组时，必须在这里限制limit 1，否则会报错group by语法错误
+)
+SELECT AVG(t1.num) AS median
+FROM t1, t2
+WHERE t1.t_rank IN (t2.start, t2.end);
+```
+
+另一思路：当某一数的正序和逆序累计均大于整个序列的数字个数的一半即为中位数
 ```sql
 select grade
 from
@@ -858,6 +899,9 @@ GROUP BY job
 ORDER BY job
 ```
 
+
+
+
 法二：使用case语句
 中位数的特征：
 - 当个数为偶数时，中位数的起始位置等于个数/2，结束位置等于个数/2+1
@@ -909,7 +953,7 @@ where t1.t_rank = t2.start or t1.t_rank=t2.end
 order by t1.id;
 ```
 
-## 3. 课程订单分析(条件筛选
+## 3. 课程订单分析(条件筛选)
 #### eg1. where语句筛选出满足条件的订单
 tips：无法直接group by user_id,因为输出结果需要select all，
 所以需要用子查询嵌套或使用公共表表达式
@@ -1052,7 +1096,8 @@ order by source
 ```mysql
 # t1选出2025年的数据
 with t1 as(
-    select job, date_format(date,'%Y-%m') as first_year_mon, sum(num) as first_year_cnt
+    select job, date_format(date,'%Y-%m') as first_year_mon, 
+           sum(num) as first_year_cnt
     from resume_info
     where date like '2025%'
     group by job,first_year_mon
@@ -1060,7 +1105,8 @@ with t1 as(
 
 # t2选出2026年的数据
 t2 as (
-    select job, date_format(date,'%Y-%m') as second_year_mon, sum(num) as second_year_cnt
+    select job, date_format(date,'%Y-%m') as second_year_mon, 
+           sum(num) as second_year_cnt
     from resume_info
     where date like '2026%'
     group by job,second_year_mon
@@ -1072,3 +1118,21 @@ from t1 join t2
 on t1.job=t2.job and right(t1.first_year_mon,2)=right(t2.second_year_mon,2)
 order by first_year_mon desc,t1.job desc
 ```
+
+## 5. 经典：更换座位（连续问题）
+![](.SQL_images/18e55944.png)
+
+分析：当id为偶数-->id-1，即令座位上移一位；
+当id为奇数-->id+1，即令座位下移一位；
+当id为奇数且为最后一位-->id保持不变
+```sql
+select 
+    case when id%2=0 then id-1
+         when id%2=1 and id in(select max(id) from seat) then id
+         else id+1 
+    end as id,
+    name
+from seat
+order by id
+```
+
