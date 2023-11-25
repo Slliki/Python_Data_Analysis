@@ -4,6 +4,26 @@
 Hadoop---Hive---Spark---Flink\
 其中Flink主要是实时处理，而Hadoop和spark等都是离线处理。
 
+- [1. 分布式计算框架](#1-分布式计算框架)
+  * [0. Google File System(GFS)](#0-google-file-systemgfs)
+  * [BigTable](#bigtable)
+  * [Spanner](#spanner)
+  * [F1](#f1)
+  * [1. Hadoop](#1-hadoop)
+  * [2. Spark](#2-spark)
+  * [3. Flink](#3-flink)
+  * [4. Kafka & Zookeeper](#4-kafka--zookeeper)
+  * [5. Hive](#5-hive)
+  * [6. Cascading](#6-cascading)
+- [2. ETL技术](#4-etl技术)
+- [3. 数据仓库（Data Warehouse）](#5-数据仓库data-warehouse)
+  * [离线数据仓库（Offline Data Warehouse）](#离线数据仓库offline-data-warehouse)
+  * [实时数据仓库（Real-time Data Warehouse）](#实时数据仓库real-time-data-warehouse)
+- [4. 大数据架构](#6-大数据架构)
+  * [1. lambda架构](#1-lambda架构)
+  * [2. kappa架构](#2-kappa架构)
+
+
 
 # 1. 分布式计算框架
 ## 0. Google File System(GFS)<big>
@@ -237,7 +257,7 @@ Cascading 是一个开源的数据处理框架，用于构建和执行复杂的�
 构建复杂的数据处理逻辑：开发人员可以使用 Cascading 定义复杂的数据处理逻辑，包括数据筛选、变换、聚合等操作，以满足各种数据处理需求。
 
 
-# 4. ETL技术
+# 2. ETL技术
 ETL（提取、转换、加载）是一种用于数据集成和数据处理的关键技术，通常用于将数据从一个数据源提取，进行必要的转换，然后加载到目标数据存储中。ETL技术在数据仓库、数据湖、数据集成、数据分析等领域起着重要的作用。以下是ETL技术的基本概念和步骤：
 
 1. 提取（Extract）：\
@@ -259,7 +279,7 @@ ETL技术的关键目标包括数据清洗、数据整合、数据质量保障�
 
 **常用ETL工具：** Kettle，DataX(阿里巴巴)，Sqoop(用于Hadoop和关系型数据库之间的数据传输)，Flume(用于Hadoop和非结构化数据之间的数据传输)
 
-# 5. 数据仓库（Data Warehouse）
+# 3. 数据仓库（Data Warehouse）
 数据仓库是一个面向主题的、集成的、相对稳定的、反映历史变化的数据集合，用于支持管理决策。
 
 离线数据仓库（Offline Data Warehouse）和实时数据仓库（Real-time Data Warehouse）是两种不同的数据仓库体系结构，用于存储和处理企业数据，但它们在数据处理和访问方面有一些显著的区别。
@@ -278,7 +298,7 @@ ETL技术的关键目标包括数据清洗、数据整合、数据质量保障�
 数据处理通常以流处理或复杂事件处理（CEP）的方式进行，以实现低延迟和实时性。
 实时数据仓库可能使用分布式流处理引擎，如Apache Kafka、Apache Flink、Apache Spark Streaming等，以处理数据流。
 
-# 6. 大数据架构
+# 4. 大数据架构
 大数据架构是指用于存储和处理大数据的软件系统架构，通常包括数据采集、数据存储、数据处理、数据分析和数据可视化等组件。
 
 ##### 1. lambda架构：

@@ -1,3 +1,54 @@
+# <BIG>SQL</BIG>
+
+## [目录](#目录)
+1. [执行顺序](#0-执行顺序big)
+   - [limit的写法](#limit的写法)
+   - [group by规则](#group-by规则)
+2. [使用`with`创建虚拟表](#1使用with创建虚拟表)
+3. [regexp 匹配](#2-regexp-匹配big)
+   - [字符匹配](#1-字符匹配)
+   - [特殊字符](#2-特殊字符)
+   - [重复次数](#3-重复次数)
+   - [字符类](#4字符类)
+   - [预定义字符类](#5预定义字符类)
+   - [边界](#6-边界-需要用转义)
+   - [量词贪婪与非贪婪](#7-量词贪婪与非贪婪)
+4. [like 模糊匹配](#3-like-模糊匹配big)
+5. [使用`case when`进行条件判断](#4-使用case-when进行条件判断big)
+6. [空值处理](#5空值处理big)
+7. [设定列值](#6-设定列值big)
+8. [窗口函数](#7-窗口函数)
+   - [定义](#1定义)
+   - [常用窗口函数](#2-常用窗口函数big)
+9. [时间函数](#8-时间函数big)
+10. [group_concat()函数](#9-group_concat函数big)
+11. [字符串处理](#10-字符串处理big)
+12. [增删改](#11-增删改big)
+13. [创建视图](#12-创建视图big)
+14. [exists语句](#13-exists语句big)
+
+## [SQL 刷题总结](#sql-刷题总结)
+1. [topN问题](#1topn问题)
+   - [使用窗口函数](#1使用窗口函数)
+   - [使用limit](#2使用limit)
+2. [连续/重复问题](#2连续重复问题)
+   - [连续](#1连续)
+   - [重复](#2重复)
+3. [中位数问题](#3中位数问题big)
+4. [累计区间计算问题](#4累计区间计算问题big)
+5. [条件求和问题](#5条件求和问题)
+6. [行转列问题](#6行转列问题)
+7. [笛卡儿积问题](#7笛卡儿积问题)
+
+## [例题总结](#例题总结)
+1. [用户登录问题](#1-用户登录问题big)
+2. [考试分数问题](#2-考试分数问题)
+3. [课程订单分析(条件筛选)](#3-课程订单分析条件筛选)
+4. [字符串处理函数；多表连接进行筛选](#4-字符串处理函数多表连接进行筛选)
+5. [经典：更换座位（连续问题）](#5-经典更换座位连续问题)
+6. [ifnull的使用：价格修改问题](#6-ifnull的使用价格修改问题)
+
+
 # SQL Tips
 ## 0. 执行顺序<big>
 SQL语句的执行顺序如下：
@@ -1134,5 +1185,35 @@ select
     name
 from seat
 order by id
+```
+## 6. ifnull的使用：价格修改问题
+现需要你写一段查询语句，来查找在 2023-05-15（updated_date 包含该日期及之前日期）
+时全部产品的价格。假设所有产品在修改前的价格都是 99。
+
+![img_39.png](img_39.png)
+
+思路：建立虚拟表t1用于选出选出指定日期前的所有产品及价格，
+建立虚拟表t2用于选出distinct的id\
+使用`t2 left join t1` 当t1中没有t2的id时，t1中的price为null，此时使用ifnull函数将其替换为99
+```mysql
+with t1 as (
+    select id,new_price
+    from products
+    where (id,updated_date) in (
+        select id,max(updated_date) as updated_date
+        from products
+        where updated_date<='2023-05-15'
+        group by id
+    )
+),
+
+t2 as (
+    select distinct id
+    from products
+)
+
+select t2.id,ifnull(t1.new_price,99) as price
+from t2
+left join t1 using(id)
 ```
 

@@ -1,9 +1,31 @@
-# <big>Hadoop and Hive</big>
+# <big>Hadoop</big>
 
-# <big>PART 1: Hadoop</big>
+- [1. HDFS](#1-hdfs)
+  * [1.1 HDFS的部署(本地虚拟机)](#1-hdfs的部署本地虚拟机)
+  * [1.2 HDFS的部署(云服务器)](#2-hdfs的部署云服务器)
+  * [1.3 AWS EMR](#3-aws-emr)
+  * [1.4 HDFS基本操作](#4-hdfs基本操作)
+    + [1.4.1 HDFS集群启停操作](#141-hdfs集群启停操作)
+    + [1.4.2 HDFS文件系统](#142-hdfs文件系统)
+    + [1.4.3 HDFS文件系统权限](#143-hdfs文件系统权限)
+    + [1.4.4 使用pycharm插件Big Data Tools连接HDFS](#144-使用pycharm插件big-data-tools连接hdfs)
+    + [1.4.5 HDFS文件储存原理](#145-hdfs文件储存原理)
+    + [1.4.6 HDFS文件系统的读写原理](#146-hdfs文件系统的读写原理)
+- [2. Yarn](#2-yarn)
+  * [2.1 Yarn的作用](#21-yarn的作用)
+  * [2.2 Yarn的架构](#22-yarn的架构)
+  * [2.3 MapReduce & Yarn的部署](#23-mapreduce-yarn的部署)
+  * [2.4 Yarn的启动](#24-yarn的启动)
+  * [2.5 提交MapReduce任务到Yarn运行](#25-提交mapreduce任务到yarn运行)
+- [MapReduce实例演示](#mapreduce实例演示)
+  * [项目实例1：wordcount](#项目实例1wordcount)
+  * [项目实例2：使用MR内置函数](#项目实例2使用mr内置函数)
+
+  
 
 # 1. HDFS
-## 1. HDFS的部署(本地虚拟机)<big>
+## 1. HDFS的部署(本地虚拟机)
+
 1. 首先，通过克隆得到的三个虚拟机node1，2，3，分别作为三个节点，其中node1作为主节点，node2，3作为从节点。\
 主节点:内存为4gb，配置为NameNode，SecondaryNameNode， DataNode
 从节点：内存为2gb，配置为DataNode
@@ -167,8 +189,8 @@ http://node1:9870
 ![](.Hadoop&Hive_images/ada9a952.png)
 </big>
 
-## 2. HDFS的部署(云服务器)<big>
-在云服务器的上部署HDFS与本地相同，只是需要用finalshell连接到所购买的云服务器，然后在finalshell上执行同样的配置：\
+## 2. HDFS的部署(云服务器)
+<big>在云服务器的上部署HDFS与本地相同，只是需要用finalshell连接到所购买的云服务器，然后在finalshell上执行同样的配置：\
 - 在node1上传解压hadoop安装包
 - 在node1构建软连接
 - 在node1修改配置文件：workers，hadoop-env.sh，core-site.xml，hdfs-site.xml
@@ -699,57 +721,10 @@ Hadoop官方内置了一些预设的MapReduce任务，可以直接使用，\
 ```shell
 hadoop jar jar包路径 [main类] [参数]
 ```
-#### wordcount 示例
-功能：给定数据输入路径（HDFS路径），给定结果输出路径（HDFS路径），\
-统计输入路径下所有文件中的单词出现次数，将结果输出到输出路径下。
-
-可以使用之前的books-input文件夹作为输入路径，将结果输出到books-output2文件夹下：
-```shell
-hadoop jar $HADOOP_HOME/share/hadoop/mapreduce/hadoop-mapreduce-examples-3.3.4.jar \
-wordcount hdfs://node1:8020/wordcount/books-input hdfs://node1:8020/wordcount/books-output2
-```
-- 参数1：`wordcount` 表示使用内置的wordcount程序
-- 参数2：`hdfs://node1:8020/wordcount/books-input` 表示输入路径
-- 参数3：`hdfs://node1:8020/wordcount/books-output2` 表示输出路径，必须保证输出文件夹原本是不存在的
-
-执行完上述命令后，可以在Web UI界面查看任务运行情况.
-
-![](.Hadoop&Hive_images/62174f08.png)
-![](.Hadoop&Hive_images/f5dc9afc.png)
-
-#### PI 示例
-功能：给定一个参数N，N为圆内随机点的个数，计算圆周率的近似值。
-
-Monte Carlo方法：\
-假设有一个半径为1的圆，以及一个边长为2的正方形，正方形的中心与圆的中心重合，\
-则正方形的四个顶点分别为(1,1)、(1,-1)、(-1,1)、(-1,-1)。\
-在正方形内部随机产生N个点，落在圆内的点的个数为M，则有：\
-pi*1^2/2*2=M/N，即`pi=4*M/N`，这样就可以通过随机点的个数来近似计算圆周率。
-
-下面是一个python实现的蒙特卡洛法计算圆周率的程序：
-```python
-import random
-import sys
-from operator import add
-
-def inside(p):
-    x, y = random.random(), random.random()
-    return x*x + y*y < 1
-```
 
 
-```shell
-hadoop jar $HADOOP_HOME/share/hadoop/mapreduce/hadoop-mapreduce-examples-3.3.4.jar pi 10 1000
-```
-- 参数1：`pi` 表示使用内置的pi程序
-- 参数2：`10` 表示设置几个map task
-- 参数3：`1000` 表示随机点的个数
-
-![](.Hadoop&Hive_images/545f3973.png)
-
-
-## MapReduce实例演示
-### 项目实例1：wordcount
+# MapReduce实例演示
+## 项目实例1：wordcount
 step 1:准备需要count的txt文件数据，这里使用从一个网站直接下载。\
 在node1：`/export/server/wordcount`下创建books-input文件夹，vim创建download_books.sh文件，写入以下内容：
 ```
@@ -849,3 +824,52 @@ hdfs dfs -getmerge books-output/part-* ../wordcount/books-output.txt
 ```
 getmerge命令只是进行concatenated，即没有进行排序；\
 如果需要fully ordered，可能要使用其他MapReduce流程
+
+## 项目实例2：使用MR内置函数
+### 1.wordcount 示例
+功能：给定数据输入路径（HDFS路径），给定结果输出路径（HDFS路径），\
+统计输入路径下所有文件中的单词出现次数，将结果输出到输出路径下。
+
+可以使用之前的books-input文件夹作为输入路径，将结果输出到books-output2文件夹下：
+```shell
+hadoop jar $HADOOP_HOME/share/hadoop/mapreduce/hadoop-mapreduce-examples-3.3.4.jar \
+wordcount hdfs://node1:8020/wordcount/books-input hdfs://node1:8020/wordcount/books-output2
+```
+- 参数1：`wordcount` 表示使用内置的wordcount程序
+- 参数2：`hdfs://node1:8020/wordcount/books-input` 表示输入路径
+- 参数3：`hdfs://node1:8020/wordcount/books-output2` 表示输出路径，必须保证输出文件夹原本是不存在的
+
+执行完上述命令后，可以在Web UI界面查看任务运行情况.
+
+![](.Hadoop&Hive_images/62174f08.png)
+![](.Hadoop&Hive_images/f5dc9afc.png)
+
+### 2.MC方法求PI 示例
+功能：给定一个参数N，N为圆内随机点的个数，计算圆周率的近似值。
+
+Monte Carlo方法：\
+假设有一个半径为1的圆，以及一个边长为2的正方形，正方形的中心与圆的中心重合，\
+则正方形的四个顶点分别为(1,1)、(1,-1)、(-1,1)、(-1,-1)。\
+在正方形内部随机产生N个点，落在圆内的点的个数为M，则有：\
+pi*1^2/2*2=M/N，即`pi=4*M/N`，这样就可以通过随机点的个数来近似计算圆周率。
+
+下面是一个python实现的蒙特卡洛法计算圆周率的程序：
+```python
+import random
+import sys
+from operator import add
+
+def inside(p):
+    x, y = random.random(), random.random()
+    return x*x + y*y < 1
+```
+
+
+```shell
+hadoop jar $HADOOP_HOME/share/hadoop/mapreduce/hadoop-mapreduce-examples-3.3.4.jar pi 10 1000
+```
+- 参数1：`pi` 表示使用内置的pi程序
+- 参数2：`10` 表示设置几个map task
+- 参数3：`1000` 表示随机点的个数
+
+![](.Hadoop&Hive_images/545f3973.png)
