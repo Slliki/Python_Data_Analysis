@@ -216,7 +216,7 @@ AWS EMR是亚马逊云上的Hadoop集群，可以直接使用，不需要自己�
 1. 登录AWS，选择EMR服务
 2. 创建集群create cluster
 3. 选择软件配置，选择Hadoop，Hive，Spark，Pig，Hue，HBase，ZooKeeper，Ganglia，Zeppelin
-![img_26.png](img_26.png)
+![img_26.png](../imges/img_26.png)
 4. 选择硬件配置，选择实例类型，实例数量，实例配置
 5. 设置key pair，用于ssh连接
 6. 集群配置：配置primary instance和core instance
@@ -261,12 +261,12 @@ hadoop jar /export/server/hadoop-3.3.4/share/hadoop/tools/sources/hadoop-streami
 
 下面时mapreduce过程：
 
-![img_30.png](img_30.png)
+![img_30.png](../imges/img_30.png)
 
 执行完上述命令后，可以在hdfs的指定目录下查看结果文件：
 
-![img_32.png](img_32.png)
-![img_31.png](img_31.png)
+![img_32.png](../imges/img_32.png)
+![img_31.png](../imges/img_31.png)
 
 books-output为结果文件，part-00000为结果文件的内容，此时该文件仍在hdfs上，需要下载到本地查看结果：
 ```
@@ -274,7 +274,7 @@ hdfs dfs -get books-output
 ``` 
 该命令将hdfs上的books-output文件夹下载到本地（当前文件夹），此时可以在本地查看结果文件：
 
-![img_33.png](img_33.png)
+![img_33.png](../imges/img_33.png)
 
 
 ## 3. HDFS基本操作
@@ -365,7 +365,7 @@ Hadoop提供了两套命令体系：
 还可以通过web页面查看文件系统\
 但是在网页是以匿名用户进行访问，没有任何权限，只能简单浏览文件系统，无法进行任何操作。</big>
 
-![img_6.png](img_6.png)
+![img_6.png](../imges/img_6.png)
 
 #### 4. HDFS文件系统权限
 HDFS文件系统于linux类似都存在superuser，linux的是root，而hdfs系统是：启动namenode的用户（我的练习中是hadoop用户）
@@ -516,8 +516,8 @@ Yarn中的资源分配和调度都是基于容器（container）的，每个容�
 - 保存历史数据，随时查看历史运行程序信息
 
 ## 3. MapReduce & Yarn的部署
-![img_36.png](img_36.png)
-![img_37.png](img_37.png)
+![img_36.png](../imges/img_36.png)
+![img_37.png](../imges/img_37.png)
 
 <big>集群规划如下(3台机器)：
 - node1：ResourceManager，NodeManager, JobHistoryServer，Web ProxysServer
@@ -705,6 +705,8 @@ yarn --daemon start|stop resourcemanager|nodemanager|proxyserver
 ```
 查看Web UI界面：
 - ResourceManager：http://node1:8088
+
+注意与hdfs的web不同，yarn的web端口为8088，而hdfs的web端口为9870
 
 ![](.Hadoop&Hive_images/3e1b1055.png)
 

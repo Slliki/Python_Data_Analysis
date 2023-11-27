@@ -106,7 +106,7 @@ Hadoop的架构：中心和主从架构，主节点NameNode作为Master负责管
 Map阶段的输出会被写入磁盘，然后reduce阶段进行读取；
 mapreduce的执行是一次性且有序的，每次map和reduce阶段直接不共享数据
 
-![img_35.png](img_35.png)
+![img_35.png](../imges/img_35.png)
 
 ![](.Distributed_System_Concepts_images/4b3b0970cb5dfe37c10fef1194be539.png)
 

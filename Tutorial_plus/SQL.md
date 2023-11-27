@@ -258,9 +258,9 @@ from table
 - `day()`：返回日期的天数。
 - `hour()`：返回日期的小时数。
 - `DateDiff(date1, date2)`：返回两个日期之间的天数。
-- `DateAdd(date, interval unit)`：返回日期加上指定时间间隔后的日期。
-  - eg:`select DateAdd(col1,interval 1 day)` 该语句会返回表中col1列的日期加上一天后的日期
-- `DateSub(date, interval unit)`：返回日期减去指定时间间隔后的日期。
+- `Date_Add(date, interval unit)`：返回日期加上指定时间间隔后的日期。
+  - eg:`select Datea_Add(col1,interval 1 day)` 该语句会返回表中col1列的日期加上一天后的日期
+- `Date_Sub(date, interval unit)`：返回日期减去指定时间间隔后的日期。
 - `DatePart(interval, date)`：返回日期的指定部分。
 - `Date_Format(date, format)`：返回日期的指定格式。
   - eg：`select Date_Format(col1, '%Y-%m-%d')` 该语句会返回表中col1列的日期，格式为YYYY-MM-DD
@@ -294,7 +294,7 @@ group_concat使用的分组依据为group by语句，本身没有分组效果
 eg: ```SELECT user_id, CONCAT(UPPER(SUBSTRING(name, 1, 1)), LOWER(SUBSTRING(name, 2))) AS name```
 该查询会返回表中name列的首字母大写，其余字母小写的字符串。</big>
 
-### 11. 增删改<big>
+## 11. 增删改<big>
 1. 表的创建
 ```
 create table table_name if not exist(
@@ -338,7 +338,7 @@ values(v11, v12, ...),
       (v21, v22, ...),
       ...
 ```
-(2) update可以修改指定位置的数据，通过where进行定位\
+(2) update可以修改指定位置的数据，通过where进行定位
 
 ````
 update table_name
@@ -432,7 +432,7 @@ drop table table_name
 ```
 
 
-### 12. 创建视图<big>
+## 12. 创建视图<big>
 视图是一种虚拟的表，具有和物理表相同的功能。\
 创建视图的语法如下：
 ```
@@ -451,7 +451,7 @@ where ...
 视图的主要作用是简化复杂的查询，保护数据安全。
 </big>
 
-### 13. exists语句<big>
+## 13. exists语句<big>
 exists语句用于判断子查询是否为空，如果子查询为空，则返回false，否则返回true。\
 exists语句的基本语法如下：
 ```
@@ -463,7 +463,8 @@ where exists (
     where ...
 )
 ```
-表示如果子查询返回的结果不为空，则返回true，否则返回false。\
+表示如果子查询返回的结果不为空，则返回true，否则返回false。
+
 eg：查询出所有在表1中出现过，但是没有在表2中出现过的人员。
 ```
 select *
@@ -474,6 +475,16 @@ where not exists (
     where t1.id = t2.id
 )
 ```
+
+## 14. union语句
+union语句用于合并两个或多个select语句的结果集，union语句的基本语法如下：
+```
+select ...from ...
+union
+select ...from ...
+```
+union语句会自动去重，如果不想去重，可以使用`union all`语句。
+
 
 # SQL 刷题总结
 # 1.topN问题
@@ -609,7 +620,7 @@ from
 where a >= total/2 and b >= total/2  -- 正序逆序均大于整个数列数字个数的一半
 order by grade;
 ```
-![img_24.png](img_24.png)
+![img_24.png](../imges/img_24.png)
 
 即：图中B和C为中位数所在grade</big>
 
@@ -667,9 +678,23 @@ GROUP BY product_id
 
 ## 2.笛卡尔积问题
 笛卡尔积问题是指在两个表中进行笛卡尔积运算，即将两个表的每一行进行组合，得到新表。\
-笛卡尔积问题一般使用`cross join`来实现，`cross join`是一种笛卡尔积运算，它返回两个表的所有可能组合。\
+笛卡尔积问题一般使用`cross join`来实现，`cross join`是一种笛卡尔积运算，它返回两个表的所有可能组合。
 
+在 SQL 中，`JOIN` 和 `CROSS JOIN` 都用于结合两个表的行，但它们的工作方式有所不同：
 
+1. **CROSS JOIN**：这是纯粹的笛卡尔积。它将第一个表中的每一行与第二个表中的每一行配对。如果第一个表有 M 行，第二个表有 N 行，结果将是一个有 M x N 行的表。`CROSS JOIN` 不需要任何连接条件。例如：
+   ```sql
+   SELECT * FROM table1 CROSS JOIN table2;
+   ```
+   上述查询会生成两个表的所有可能组合。
+
+2. **JOIN**（通常指 INNER JOIN）：这种类型的连接需要一个连接条件。它只会返回满足连接条件的那些行。如果没有提供连接条件，`JOIN` 就变成了 `CROSS JOIN`。例如：
+   ```sql
+   SELECT * FROM table1 JOIN table2 ON table1.column_name = table2.column_name;
+   ```
+   上述查询只返回那些在 `table1.column_name` 和 `table2.column_name` 上有匹配值的行。
+
+总结来说，如果没有指定连接条件，`JOIN` 会变成 `CROSS JOIN`，表现为笛卡尔积。但一般情况下，我们提到 `JOIN` 时通常是指有连接条件的 `INNER JOIN`，而 `CROSS JOIN` 则明确表示无条件的笛卡尔积。
 
 eg：查询出每个学生参加每一门科目测试的次数，结果按 student_id 和 subject_name 排序。
 查询结构格式如下所示。
@@ -689,8 +714,8 @@ eg：查询出每个学生参加每一门科目测试的次数，结果按 stude
 ## 1. 用户登录问题<big>
 #### eg1.每个人最近登录的日期
 
-![img_8.png](img_8.png)
-![img_9.png](img_9.png)
+![img_8.png](../imges/img_8.png)
+![img_9.png](../imges/img_9.png)
 
 思路：max（date）即可找出最近日期，但是需要用子查询嵌套，否则语法报错
 ``` mysql
@@ -772,7 +797,7 @@ order by l.date;
 
 #### eg 4:每个日期的新用户留存率。同样使用login表。下面是预期输出
 
-![img_7.png](img_7.png)
+![img_7.png](../imges/img_7.png)
 
 #### 确定总体问题
 - 关键问题：每个日期 新用户 的次日留存率
@@ -865,7 +890,7 @@ order by date
 ## 2， 考试分数问题
 #### eg1. 查询用户分数大于其所在工作(job)分数的平均分的所有grade的属性
 
-![img_11.png](img_11.png)
+![img_11.png](../imges/img_11.png)
 
 思路：创建虚表得出各个job的平均分，在join主表using(job)进行比较
 ``` mysql
@@ -884,7 +909,7 @@ order by a.id
 
 
 #### eg2. topN问题：找出每个job中score前二的用户，考虑并列情况。
-![img_12.png](img_12.png)
+![img_12.png](../imges/img_12.png)
 
 法一：使用窗口函数dense_rank()\
 使用窗口函数`dense_rank()`会为每一行添加一个排名,保证并列情况下不会跳过下一个排名
@@ -930,7 +955,7 @@ order by l.name,g1.score desc
 ```
 
 #### eg3.输出中位数位置范围
-![img_14.png](img_14.png)![img_13.png](img_13.png)
+![img_14.png](../imges/img_14.png)![img_13.png](../imges/img_13.png)
 - `floor()`:返回不大于指定数字的最大整数,即向下取整
 - `ceil()`:返回不小于指定数字的最小整数,即向上取整
 
@@ -976,7 +1001,7 @@ order by job;
 ```
 
 #### eg4.输出中位数位置上的分数
-![img_15.png](img_15.png)
+![img_15.png](../imges/img_15.png)
 
 
 ```mysql
@@ -1011,7 +1036,7 @@ tips：无法直接group by user_id,因为输出结果需要select all，
 
 **可以尝试将需要select的列都进行group by，有时候可以得到正确结果！！**
 
-![img_16.png](img_16.png)
+![img_16.png](../imges/img_16.png)
 
 ```mysql
 # 法一：子查询嵌套
@@ -1076,7 +1101,7 @@ tip：使用窗口函数对date进行分组排序，找出前两个日期即可
 这题row_number/rank/dense_rank都可以成功输出
 `row_number() over (partition by user_id order by date)`
 
-![img_17.png](img_17.png)
+![img_17.png](../imges/img_17.png)
 
 ```mysql
 with t1 as (
@@ -1104,7 +1129,7 @@ order by user_id;
 
 #### eg3. 分组问题，加入新值
 
-![img_18.png](img_18.png)
+![img_18.png](../imges/img_18.png)
 
 ```mysql
 # t1选出满足条件的全部列，并设置count（id）
@@ -1140,8 +1165,8 @@ order by source
 
 ## 4. 字符串处理函数；多表连接进行筛选
 
-![img_22.png](img_22.png)
-![img_23.png](img_23.png)
+![img_22.png](../imges/img_22.png)
+![img_23.png](../imges/img_23.png)
 
 思路：分别通过时间条件选出两个表代表2025和2026年的数据，然后用job和月份进行连接，最后用case when语句进行筛选
 ```mysql
@@ -1190,7 +1215,7 @@ order by id
 现需要你写一段查询语句，来查找在 2023-05-15（updated_date 包含该日期及之前日期）
 时全部产品的价格。假设所有产品在修改前的价格都是 99。
 
-![img_39.png](img_39.png)
+![img_39.png](../imges/img_39.png)
 
 思路：建立虚拟表t1用于选出选出指定日期前的所有产品及价格，
 建立虚拟表t2用于选出distinct的id\

@@ -338,7 +338,7 @@ ip地址指的是网络地址，每台计算机都有一个ip地址，用于在�
 - `ps`命令：查看进程
   - `ps -ef`：e表示查看全部进程，f表示查看进程的详细信息
   - `ps -ef | grep xxx`：查看所有进程，并查找包含xxx的进程
-  ![img_2.png](img_2.png)
+  ![img_2.png](../imges/img_2.png)
 - `kill`命令：杀死进程
   - `kill PID`：杀死指定PID的进程
   - `kill -9 PID`：强制杀死指定PID的进程
@@ -572,7 +572,7 @@ sudo ln -s /usr/share/zoneinfo/Asia/Shanghai /etc/localtime 创建软链接将�
 3. 创建key pair，选择创建新的key pair，输入名称，然后下载密钥对文件(.ppk)，妥善保存该文件
 4. Network Settings-->选择vpc为‘Work VPC’
    - 配置Firewall:创建security groups；注意配置inbound rules；outbound一般默认即可
-   ![img_25.png](img_25.png)
+   ![img_25.png](../imges/img_25.png)
 5. 可以在advanced details--user data中添加脚本，脚本的内容可以用于配置云服务器，如配置JDK环境，配置SSH免密登录等。
 比如：
 ```
@@ -585,14 +585,14 @@ echo '<html><h1>Hello from our Server!</h1></html>' > /var/www/html/index.html
 ```
 
 **SSH连接EC2**
-![img_27.png](img_27.png)
+![img_27.png](../imges/img_27.png)
 
 putty连接：
 host name：ec2-user@'Public DNS (IPv4)'\
 比如此时我的host name应该为：`ec2-user@ec2-3-94-31-222.compute-1.amazonaws.com`
 
 finalshell连接：
-![img_28.png](img_28.png)
+![img_28.png](../imges/img_28.png)
 主机名：public DNS (IPv4)\
 用户名：ec2-user\
 认证：可以用ppk或pem文件的key pair

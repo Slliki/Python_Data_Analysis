@@ -34,7 +34,7 @@
 暂存区：stage，本地电脑中的 .git 文件夹\
 本地仓库:local repository，本地电脑中的 .git 文件夹\
 远程仓库：remote repository，远程服务器中的 .git 文件夹
-![img.png](img.png)
+![img.png](../imges/img.png)
 
 ## 2. <font color='red'>Git **常用命令**</font>
 - workspace --> stage: `git add xxx` 表示添加指定文件到暂存区 `git add .`表示将所有文件添加到暂存区
