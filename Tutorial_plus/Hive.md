@@ -6,6 +6,8 @@
   - [2.1. Hive on VMware](#21-hive-on-vmware)
   - [2.2. Hive on Alibaba Cloud](#22-hive-on-alibaba-cloud)
   - [2.3. Hive on AWS](#23-hive-on-aws)
+- [3. Hive SQL](#3-hive-sql)
+- [4. DataGrip](#4-datagrip)
 
 
 

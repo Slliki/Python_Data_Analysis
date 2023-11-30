@@ -440,6 +440,8 @@ create view view_name (col_name1, col_name2..) as
 select ...
 from ...
 where ...
+
+with local/cascaded check option
 ```
 ```
 create view view_name as
@@ -449,6 +451,12 @@ where ...
 ```
 两种写法都可以创建视图，并给视图的列指定名称。\
 视图的主要作用是简化复杂的查询，保护数据安全。
+
+- `WITH CHECK OPTION`：用于确保通过视图进行的插入或更新操作符合视图的定义。这可以防止通过视图添加或修改那些不符合视图定义的行。
+- `WITH LOCAL CHECK OPTION`：该选项仅应用于当前定义的视图。它不会影响基于该视图创建的其他视图。
+- `WITH CASCADED CHECK OPTION`：该选项不仅应用于当前视图，还会级联应用到所有基于当前视图的视图上。即，任何基于当前视图定义的其他视图也会受到同样的检查限制。
+
+简而言之：LOCAL 选项仅影响当前视图，而 CASCADED 选项还会影响所有基于当前视图创建的视图。
 </big>
 
 ## 13. exists语句<big>
@@ -485,6 +493,121 @@ select ...from ...
 ```
 union语句会自动去重，如果不想去重，可以使用`union all`语句。
 
+## 15. procedure 存储过程
+存储过程是一种预编译的代码块，可以接受参数，可以执行SQL语句并返回结果。\
+在一个存储过程内部，你需要在每个语句的末尾使用分号来分隔各个语句
+
+**创建存储过程**：
+```
+create procedure procedure_name(param1, param2, ...)
+begin
+    # decalre语句用于声明变量
+    declare var1 type1;
+    declare var2 type2;
+    ...
+    sql_statement;(select..from...);
+    ...
+end
+```
+注意：sql语句必须以分号结尾，否则会报错。
+
+1. 参数传递：存储过程可以接受输入参数（IN参数）、输出参数（OUT参数）和输入/输出参数（INOUT参数）。
+2. 重复使用：存储过程可以在多个地方调用，以实现代码的重用，提高性能和维护性。
+3. 安全性：存储过程可以控制对数据库的访问权限，并减少SQL注入的风险。
+4. 事务控制：存储过程可以包含多个SQL语句，这些语句可以作为一个事务单元执行，从而保证数据的一致性。
+
+以下是关于存储过程参数的说明：
+
+- IN参数：这些参数用于传递值给存储过程。在存储过程内部，您可以使用这些参数进行计算、查询或其他操作。IN参数是只读的，不会改变传入的值。
+
+- OUT参数：这些参数用于存储过程向调用者返回值。在存储过程内部，您可以将结果赋给OUT参数，然后在调用存储过程的代码中访问这些值。
+
+- INOUT参数：这些参数既可以传递值给存储过程，又可以用于存储过程向调用者返回值。它们可以被读取和写入。
+
+以下是一个示例存储过程的创建，其中包括IN、OUT和INOUT参数：
+
+```sql
+CREATE PROCEDURE CalculateTotalPrice(IN productId INT, IN quantity INT, 
+        OUT totalPrice DECIMAL(10, 2), INOUT discount DECIMAL(5, 2))
+BEGIN
+    DECLARE productPrice DECIMAL(10, 2);
+    
+    -- 根据产品ID查询产品价格，select into语句用于将查询结果赋值给变量
+    SELECT price INTO productPrice FROM products WHERE id = productId;
+    
+    -- 计算总价
+    SET totalPrice = productPrice * quantity;
+    
+    -- 应用折扣
+    SET totalPrice = totalPrice * (1 - (discount / 100));
+    
+    -- 更新折扣
+    SET discount = discount + 5;  -- 增加5%的折扣
+    
+END; # 结束存储过程的定义,需要分号结尾
+```
+
+在这个示例中，存储过程接受产品ID（productId）、数量（quantity）和折扣（discount）作为参数，计算总价格，并将结果存储在totalPrice参数中。同时，它也更新了折扣参数。您可以在调用存储过程时传递这些参数，并获取计算后的结果。
+
+要调用这个存储过程，可以使用如下SQL语句：
+
+```sql
+CALL CalculateTotalPrice(1, 5, @total, @discount);
+SELECT @total AS TotalPrice, @discount AS Discount;
+```
+
+这将计算产品ID为1，数量为5的产品的总价格，并返回计算结果以及更新后的折扣。
+
+存储过程可以看作是一个函数，它接受输入参数并返回结果。
+但是，存储过程与函数之间有一个重要的区别：存储过程可以包含多个SQL语句 ，
+而函数只能包含一个SQL语句。
+
+eg2： 不需要out参数，只需要in参数，此时直接call该存储过程，会调用内部sql语句并返回结果
+```sql
+create procedure query_country(
+    in country_name varchar(100) 
+)
+begin
+select * from teachers where country = country_name;
+end;
+
+call query_country('CN');
+```
+
+eg3:批量插入数据。使用循环+`insert into table_name values()`
+![img_8.png](img_8.png)
+```sql
+create procedure addTeachers()
+begin
+    declare id int default 1;
+    declare name varchar(255);
+    declare email varchar(255);
+    declare age int;
+
+    while id<=30000 do
+        set name=concat('teacher',id);
+        set email=concat(name,'@chapter.com');
+        set age=26+(id%20);
+
+        -- 插入表teachers中，用反引号标注列名
+        insert into teachers(`name`,`email`,`age`,`country`)
+        values(name,email,age,'');
+
+        set id=id+1;
+    end while;
+end;
+```
+
+**删除存储过程**：
+```
+drop procedure if exists procedure_name
+```
+eg:
+```sql
+drop procedure if exists query_country
+```
+
+请注意，存储过程的语法和功能会根据不同的数据库管理系统（如MySQL、SQL Server、Oracle等）而有所不同。上述示例是基于MySQL的语法。如果您使用的是其他数据库系统，请根据该系统的文档来创建和调用存储过程。
 
 # SQL 刷题总结
 # 1.topN问题
