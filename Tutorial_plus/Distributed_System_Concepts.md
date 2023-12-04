@@ -22,7 +22,11 @@ Hadoop---Hive---Spark---Flink\
 - [4. 大数据架构](#6-大数据架构)
   * [1. lambda架构](#1-lambda架构)
   * [2. kappa架构](#2-kappa架构)
-
+- [5. Data Lake and Data Warehouse](#5-data-lake-and-data-warehouse)
+  - [1. Data Lake](#1-data-lake)
+  - [2. Data Warehouse](#2-data-warehouse)
+- [6. AWS Ecosystem](#6-aws-ecosystem)
+  - [1. Kinesis](#1-kinesis)
 
 
 # 1. 分布式计算框架
@@ -313,3 +317,51 @@ lambda架构主要是离线数仓+实时数仓结合。
 Kappa架构是一种简化的大数据架构，它专注于使用实时流处理来处理数据，而不需要维护两个独立的层。\
 Kappa架构使用流处理引擎（如Apache Kafka和Flink）来处理实时数据流，然后将数据存储在持久化存储中（如Hadoop HDFS或云存储）以供查询和分析。\
 Kappa架构的一个主要优势是它的简化性，因为它只使用了一个数据处理流程，而不需要维护复杂的批处理和速度处理逻辑。</big>
+
+# 5. Data Lake and Data Warehouse
+## 1. Data Lake
+数据湖是一个用于存储大量结构化和非结构化数据的存储库，它可以存储任何类型的数据，包括原始数据、半结构化数据和非结构化数据。数据湖通常是一个集中的存储库，用于存储来自多个数据源的数据，包括数据库、日志文件、传感器数据、社交媒体数据等。数据湖通
+常使用分布式文件系统（如Hadoop HDFS）或云存储（如Amazon S3）来存储数据。
+
+## 2. Data Warehouse
+数据仓库是一个面向主题的、集成的、相对稳定的、反映历史变化的数据集合，用于支持管理决策。数据仓库通常用于存储和分析企业的历史数据，以支持决策制定和业务分析。
+数据仓库通常使用关系型数据库来存储数据，如Oracle、MySQL、PostgreSQL等。
+
+两者的区别： 
+- 数据湖通常用于存储原始数据，而数据仓库通常用于存储已经清洗和转换的数据。
+- 数据湖通常用于存储非结构化和半结构化数据，而数据仓库通常用于存储结构化数据。
+
+# 6. AWS Ecosystem
+## 1. Kinesis
+Amazon Kinesis 是一个在 AWS 上构建的大数据平台，允许实时收集、处理和分析数据流，可以处理任何规模的流数据，并可以实时分析和响应数据。
+
+**Amazon Kinesis 的主要服务包括：**
+
+1. **Kinesis Data Streams**：用于收集和处理大量数据流的服务，允许你构建自定义的应用程序来处理或分析数据，例如股票交易数据、社交媒体数据流或游戏数据。
+
+2. **Kinesis Data Firehose**：是一个完全托管的服务，用于捕获、转换和加载数据流到 AWS 数据存储，如 S3、Redshift、Elasticsearch Service 和 Splunk。
+
+3. **Kinesis Data Analytics**：允许你使用 SQL 或 Java 对数据流进行实时分析，无需学习新的编程语言或管理任何基础设施。
+
+4. **Kinesis Video Streams**：安全地收集、处理和存储视频流数据。它支持实时和批量视频流的分析，并且可以与其他分析和机器学习服务集成。
+
+**Amazon Kinesis 的一些常见用例包括：**
+
+- 实时数据监控和分析，如网站点击流、金融交易等。
+- 日志和事件数据的实时收集，用于监控、分析和警报。
+- 实时数据馈送，用于机器学习模型。
+- 为移动应用程序提供实时数据处理。
+
+**如何使用Amazon Kinesis：**
+
+1. **创建数据流**：首先在 Kinesis Data Streams 或 Kinesis Video Streams 中创建一个数据流。
+
+2. **发送数据**：从数据生产者（如服务器日志、应用程序等）发送数据到创建的流。
+
+3. **处理数据**：使用 Kinesis Data Firehose 将数据流送到 AWS 服务进行存储和分析，或者使用 Kinesis Data Analytics 实时分析数据。
+
+4. **消费数据**：构建应用程序来消费和处理数据，如使用 AWS Lambda、Amazon EC2 等。
+
+Kinesis 提供的是一个高吞吐量、可扩展的解决方案，旨在实现实时数据流处理，并与其他 AWS 服务紧密集成以构建完整的大数据分析解决方案。
+
+## 2. 

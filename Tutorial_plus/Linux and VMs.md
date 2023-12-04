@@ -572,7 +572,9 @@ sudo ln -s /usr/share/zoneinfo/Asia/Shanghai /etc/localtime 创建软链接将�
 3. 创建key pair，选择创建新的key pair，输入名称，然后下载密钥对文件(.ppk)，妥善保存该文件
 4. Network Settings-->选择vpc为‘Work VPC’
    - 配置Firewall:创建security groups；注意配置inbound rules；outbound一般默认即可
+   
    ![img_25.png](../imges/img_25.png)
+
 5. 可以在advanced details--user data中添加脚本，脚本的内容可以用于配置云服务器，如配置JDK环境，配置SSH免密登录等。
 比如：
 ```
@@ -585,14 +587,25 @@ echo '<html><h1>Hello from our Server!</h1></html>' > /var/www/html/index.html
 ```
 
 **SSH连接EC2**
+
 ![img_27.png](../imges/img_27.png)
 
-putty连接：
+### putty连接：
 host name：ec2-user@'Public DNS (IPv4)'\
 比如此时我的host name应该为：`ec2-user@ec2-3-94-31-222.compute-1.amazonaws.com`
+putty只能使用ppk作为密钥
 
-finalshell连接：
-![img_28.png](../imges/img_28.png)
+### finalshell连接：
+![img_28.png](../imges/img_28.png)\
 主机名：public DNS (IPv4)\
 用户名：ec2-user\
 认证：可以用ppk或pem文件的key pair
+
+### cloudshell连接：
+可以使用aws网页中的cloudshell连接，不需要额外配置，但是cloudshell只能使用pem作为密钥
+- 上传密钥文件到cloudshell中
+- 修改密钥文件权限：`chmod 400 keypair.pem`， 400表示只有root用户有读权限
+- 连接：`ssh -i keypair.pem ec2-user@'Public DNS (IPv4)'`
+- 如果是ubuntu系统，用户名为ubuntu，连接命令为：`ssh -i keypair.pem ubuntu@'Public DNS (IPv4)'`
+
+![img_9.png](img_9.png)

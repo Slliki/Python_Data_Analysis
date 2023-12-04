@@ -296,7 +296,7 @@ eg: ```SELECT user_id, CONCAT(UPPER(SUBSTRING(name, 1, 1)), LOWER(SUBSTRING(name
 
 ## 11. 增删改<big>
 1. 表的创建
-```
+```SQL
 create table table_name if not exist(
     col1 type1 not null,
     col2 type2 primary key,
@@ -310,7 +310,7 @@ create table table_name if not exist(
 `create 目标表 like 来源表`
 
 将table1的部分拿来创建table2\
-```
+```SQL
 create table if not exists actor_name
 (first_name varchar(45) not null,
 last_name varchar(45) not null)
@@ -318,7 +318,7 @@ select first_name,last_name
 from actor
 ```
 2. 表的插入
-```
+```SQL
 insert into table_name(col1, col2, ...)
 values(v11, v12, ...),
       (v21, v22, ...),
@@ -326,13 +326,13 @@ values(v11, v12, ...),
 ```
 其中v11, v12, ...表示第一行的值，v21, v22, ...表示第二行的值，以此类推。
 
-```
+```SQL
 insert ignore into table_name(col1, col2, ...)
 ```
 ignore表示如果插入的数据与表中的数据重复，则忽略该条数据。
 3. 表的修改\
 (1) 通过replace将指定列数据修改
-```
+```SQL
 replace into table_name(col1, col2, ...)
 values(v11, v12, ...),
       (v21, v22, ...),
@@ -340,19 +340,28 @@ values(v11, v12, ...),
 ```
 (2) update可以修改指定位置的数据，通过where进行定位
 
-````
+````SQL
 update table_name
 set col1 = v11,
     col2 = v12,
     ...
 where condition
 ````
-```
+```SQL
 update table_name
-set col1=if(condition1, new_value, col1)
-    col2=if(condition2, new_value, col2)
+set col1=if(condition1, new_value, value2) 
+    col2=if(condition2, new_value, value2)
+# else:value2
+
+set col1=case
+    when condition1 then new_value
+    when condition2 then new_value
+    ...
+    else value2
+end
+
 ```
-```
+```SQL
 修改满足条件的具体某个值
 update table_name
 set col_name=replace(col_name, 'old_value', 'new_value')
