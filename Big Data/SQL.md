@@ -415,12 +415,12 @@ alter table table_name drop index index_name
 5. 表的删除
 
 (1) delete可以删除指定位置的数据，通过where进行定位
-```
+```sql
 delete from table_name
 where condition
 ```
 注意：语法不允许使用子查询进行删除，如果有需要用到子查询的情况，可以使用下面的语句,通过命名虚拟表来实现
-```
+```sql
 delete from table_name
 where id in (
     select* from(
