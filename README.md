@@ -20,7 +20,7 @@ Data, Machine Learning, Deep Learning, etc.
   - [Feature Engineering.ipynb](Data%20Science%2FFeature%20Engineering.ipynb)
   - [EDA-Exploratory Data Analysis.ipynb](Data%20Science%2FEDA-Exploratory%20Data%20Analysis.ipynb)
   - [Data Analytics-Titanic example.ipynb](Data%20Science%2FData%20Analytics-Titanic%20example.ipynb)
-
+  - [Time Series Analyze.ipynb](Data%20Science%2FTime%20Series%20Analyze.ipynb)
 - [Big Data](Big%20Data)
   - [Data_Analysis_Model.md](Big%20Data%2FData_Analysis_Model.md)
   - [Distributed_System_Concepts.md](Big%20Data%2FDistributed_System_Concepts.md)
